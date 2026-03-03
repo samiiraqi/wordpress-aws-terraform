@@ -78,6 +78,7 @@ This project was built for learning. In a real production environment I would im
 - **Multi-AZ RDS** - Enable Multi-AZ for high availability
 - **Auto Scaling** - Scale ECS tasks based on traffic
 - **Terraform State** - Store state in S3 with DynamoDB locking instead of local file
+- **Custom Docker Images** - Build custom nginx image with nginx.conf baked in, stored in AWS ECR instead of using runtime scripts
 
 
 ## Author
