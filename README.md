@@ -67,6 +67,19 @@ wordpress-infra/
 - How to share storage between containers using EFS
 - How to connect ECS to RDS securely
 
+
+## Production Improvements
+
+This project was built for learning. In a real production environment I would improve:
+
+- **Database password** - Store in AWS Secrets Manager instead of tfvars file
+- **HTTPS** - Add SSL certificate with ACM and redirect HTTP to HTTPS
+- **NAT Gateway** - Use real private subnets with NAT Gateway instead of pseudo-private
+- **Multi-AZ RDS** - Enable Multi-AZ for high availability
+- **Auto Scaling** - Scale ECS tasks based on traffic
+- **Terraform State** - Store state in S3 with DynamoDB locking instead of local file
+
+
 ## Author
 
 Sami Iraqi
