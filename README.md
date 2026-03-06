@@ -79,6 +79,8 @@ This project was built for learning. In a real production environment I would im
 - **Auto Scaling** - Scale ECS tasks based on traffic
 - **Terraform State** - Store state in S3 with DynamoDB locking instead of local file
 - **Custom Docker Images** - Build custom nginx image with nginx.conf baked in, stored in AWS ECR instead of using runtime scripts
+- **EFS Initialization** - Use custom Docker image with WordPress 
+  files baked in to avoid container startup timing issues
 
 
 ## Author
