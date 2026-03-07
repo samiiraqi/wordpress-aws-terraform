@@ -17,6 +17,7 @@ Internet
     │
     ▼
 [RDS MySQL 8.0]                    →  Private Subnets
+- **ECR** - Custom WordPress php-fpm image built for AMD64
 ```
 
 ## Infrastructure Components
@@ -81,7 +82,7 @@ This project was built for learning. In a real production environment I would im
 - **Custom Docker Images** - Build custom nginx image with nginx.conf baked in, stored in AWS ECR instead of using runtime scripts
 - **EFS Initialization** - Use custom Docker image with WordPress 
   files baked in to avoid container startup timing issues
-
+- **CI/CD Pipeline** - Automate Docker image builds and pushes to ECR using GitHub Actions
 
 ## Author
 
