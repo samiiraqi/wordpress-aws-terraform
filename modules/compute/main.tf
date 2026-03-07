@@ -1,3 +1,40 @@
+
+# ECR Repository for custom WordPress image
+resource "aws_ecr_repository" "wordpress" {
+  name                 = "${var.project_name}-php-fpm"
+  image_tag_mutability = "MUTABLE"
+
+  image_scanning_configuration {
+    scan_on_push = true
+  }
+
+  tags = {
+    Name = "${var.project_name}-php-fpm"
+  }
+}
+# Build and push Docker image to ECR automatically
+resource "null_resource" "docker_build_push" {
+  triggers = {
+    dockerfile = filemd5("${path.module}/../../docker/Dockerfile")
+  }
+
+  provisioner "local-exec" {
+    command = <<-EOF
+      aws ecr get-login-password --region us-east-1 | \
+        docker login --username AWS --password-stdin \
+        ${aws_ecr_repository.wordpress.repository_url}
+      
+      docker buildx build \
+        --platform linux/amd64 \
+        --push \
+        -t ${aws_ecr_repository.wordpress.repository_url}:latest \
+        ${path.module}/../../docker/
+    EOF
+  }
+
+  depends_on = [aws_ecr_repository.wordpress]
+}
+
 # EFS - Shared storage between nginx and php-fpm
 resource "aws_efs_file_system" "wordpress" {
   creation_token = "${var.project_name}-efs"
@@ -84,7 +121,8 @@ resource "aws_ecs_task_definition" "wordpress" {
   container_definitions = jsonencode([
     {
       name      = "php-fpm"
-      image     = "156041402173.dkr.ecr.us-east-1.amazonaws.com/wordpress-php-fpm:latest"
+      image = "${aws_ecr_repository.wordpress.repository_url}:latest"
+      
       essential = true
       memory    = 256
 
@@ -264,6 +302,9 @@ resource "aws_ecs_service" "wordpress" {
     container_name   = "nginx"
     container_port   = 80
   }
-
-  depends_on = [aws_lb_listener.http, aws_iam_role_policy_attachment.ecs_task_execution_role]
+depends_on = [
+  aws_lb_listener.http,
+  aws_iam_role_policy_attachment.ecs_task_execution_role,
+  null_resource.docker_build_push
+]
 }
