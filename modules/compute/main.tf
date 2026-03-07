@@ -33,6 +33,11 @@ resource "aws_iam_role_policy_attachment" "ecs_instance_role" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"
 }
 
+resource "aws_iam_role_policy_attachment" "ecs_instance_ecr" {
+  role       = aws_iam_role.ecs_instance_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+}
+
 resource "aws_iam_instance_profile" "ecs_instance_profile" {
   name = "${var.project_name}-ecs-instance-profile"
   role = aws_iam_role.ecs_instance_role.name
@@ -49,6 +54,11 @@ resource "aws_iam_role" "ecs_task_execution_role" {
 resource "aws_iam_role_policy_attachment" "ecs_task_execution_role" {
   role       = aws_iam_role.ecs_task_execution_role.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_task_execution_ecr" {
+  role       = aws_iam_role.ecs_task_execution_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
 }
 
 resource "aws_cloudwatch_log_group" "wordpress" {
@@ -74,16 +84,27 @@ resource "aws_ecs_task_definition" "wordpress" {
   container_definitions = jsonencode([
     {
       name      = "php-fpm"
-      image     = "wordpress:php8.2-fpm"
+      image     = "156041402173.dkr.ecr.us-east-1.amazonaws.com/wordpress-php-fpm:latest"
       essential = true
       memory    = 256
+
       environment = [
         { name = "WORDPRESS_DB_HOST",     value = var.db_endpoint },
         { name = "WORDPRESS_DB_NAME",     value = var.db_name },
         { name = "WORDPRESS_DB_USER",     value = var.db_username },
         { name = "WORDPRESS_DB_PASSWORD", value = var.db_password }
       ]
+
+      healthCheck = {
+        command     = ["CMD-SHELL", "php-fpm -t || exit 1"]
+        interval    = 10
+        timeout     = 5
+        retries     = 3
+        startPeriod = 30
+      }
+
       mountPoints = [{ sourceVolume = "wordpress-data", containerPath = "/var/www/html", readOnly = false }]
+
       logConfiguration = {
         logDriver = "awslogs"
         options = {
@@ -99,11 +120,21 @@ resource "aws_ecs_task_definition" "wordpress" {
       essential = true
       memory    = 128
       links     = ["php-fpm"]
+
       entryPoint = ["/bin/sh", "-c"]
-      command = ["until printf 'server {\\n  listen 80;\\n  root /var/www/html;\\n  index index.php;\\n  location / { try_files $uri $uri/ /index.php?$args; }\\n  location ~ \\.php$ { fastcgi_pass php-fpm:9000; fastcgi_index index.php; include fastcgi_params; fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name; }\\n}' > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'; do sleep 5; done"]
+      command    = ["printf 'server {\\n  listen 80;\\n  root /var/www/html;\\n  index index.php;\\n  location / { try_files $uri $uri/ /index.php?$args; }\\n  location ~ \\.php$ { fastcgi_pass php-fpm:9000; fastcgi_index index.php; include fastcgi_params; fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name; }\\n}\\n' > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"]
+
       portMappings = [{ containerPort = 80, hostPort = 80, protocol = "tcp" }]
+
       mountPoints = [{ sourceVolume = "wordpress-data", containerPath = "/var/www/html", readOnly = true }]
-      dependsOn = [{ containerName = "php-fpm", condition = "START" }]
+
+      dependsOn = [
+        {
+          containerName = "php-fpm"
+          condition     = "HEALTHY"
+        }
+      ]
+
       logConfiguration = {
         logDriver = "awslogs"
         options = {
@@ -161,12 +192,16 @@ resource "aws_launch_template" "ecs" {
   name_prefix   = "${var.project_name}-ecs-"
   image_id      = data.aws_ssm_parameter.ecs_ami.value
   instance_type = "t2.micro"
+
   iam_instance_profile { name = aws_iam_instance_profile.ecs_instance_profile.name }
+
   network_interfaces {
     associate_public_ip_address = true
     security_groups             = [var.ecs_sg_id]
   }
+
   user_data = base64encode("#!/bin/bash\necho ECS_CLUSTER=${aws_ecs_cluster.main.name} >> /etc/ecs/ecs.config\n")
+
   tag_specifications {
     resource_type = "instance"
     tags = { Name = "${var.project_name}-ecs-instance" }
@@ -179,10 +214,12 @@ resource "aws_autoscaling_group" "ecs" {
   min_size            = 1
   max_size            = 1
   vpc_zone_identifier = var.pseudo_private_subnet_ids
+
   launch_template {
     id      = aws_launch_template.ecs.id
     version = "$Latest"
   }
+
   tag {
     key                 = "AmazonECSManaged"
     value               = true
@@ -216,14 +253,17 @@ resource "aws_ecs_service" "wordpress" {
   task_definition                   = aws_ecs_task_definition.wordpress.arn
   desired_count                     = 1
   health_check_grace_period_seconds = 120
+
   capacity_provider_strategy {
     capacity_provider = aws_ecs_capacity_provider.main.name
     weight            = 1
   }
+
   load_balancer {
     target_group_arn = aws_lb_target_group.wordpress.arn
     container_name   = "nginx"
     container_port   = 80
   }
+
   depends_on = [aws_lb_listener.http, aws_iam_role_policy_attachment.ecs_task_execution_role]
 }
