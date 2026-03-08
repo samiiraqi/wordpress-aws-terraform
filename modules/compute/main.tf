@@ -251,7 +251,7 @@ resource "aws_autoscaling_group" "ecs" {
   name                = "${var.project_name}-ecs-asg"
   desired_capacity    = 1
   min_size            = 1
-  max_size            = 1
+  max_size            = 3
   vpc_zone_identifier = var.pseudo_private_subnet_ids
 
   launch_template {
@@ -263,6 +263,18 @@ resource "aws_autoscaling_group" "ecs" {
     key                 = "AmazonECSManaged"
     value               = true
     propagate_at_launch = true
+  }
+}
+resource "aws_autoscaling_policy" "scale_up" {
+  name                   = "${var.project_name}-scale-up"
+  autoscaling_group_name = aws_autoscaling_group.ecs.name
+  policy_type            = "TargetTrackingScaling"
+
+  target_tracking_configuration {
+    predefined_metric_specification {
+      predefined_metric_type = "ASGAverageCPUUtilization"
+    }
+    target_value = 5
   }
 }
 

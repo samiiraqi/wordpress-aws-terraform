@@ -60,3 +60,9 @@ module "compute" {
   db_username               = module.database.db_username
   db_password               = var.db_password
 }
+module "monitoring" {
+  source         = "./modules/monitoring"
+  project_name   = var.project_name
+  alb_arn_suffix = module.compute.alb_arn_suffix
+  sns_topic_arn  = module.billing.sns_topic_arn
+}
