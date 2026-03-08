@@ -84,6 +84,10 @@ This project was built for learning. In a real production environment I would im
   files baked in to avoid container startup timing issues
 - **CI/CD Pipeline** - Automate Docker image builds and pushes to ECR using GitHub Actions
 
+- **Grafana + Prometheus** - Replace CloudWatch Dashboard with Grafana connected to Prometheus for more advanced metrics and visualization
+- **PagerDuty** - Replace email notifications with PagerDuty for on-call alerting and incident management
+- **Chaos Engineering** - Use AWS Fault Injection Simulator (FIS) to test system resilience by randomly terminating instances
+- **Slack Integration** - Route SNS notifications to Slack so the entire team sees alerts in real time
 ## Author
 
 Sami Iraqi
