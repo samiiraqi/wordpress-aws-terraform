@@ -59,6 +59,7 @@ module "compute" {
   db_name                   = module.database.db_name
   db_username               = module.database.db_username
   db_password               = var.db_password
+  sns_topic_arn             = module.billing.sns_topic_arn
 }
 module "monitoring" {
   source         = "./modules/monitoring"

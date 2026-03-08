@@ -265,6 +265,18 @@ resource "aws_autoscaling_group" "ecs" {
     propagate_at_launch = true
   }
 }
+resource "aws_autoscaling_notification" "wordpress" {
+  group_names = [aws_autoscaling_group.ecs.name]
+
+  notifications = [
+    "autoscaling:EC2_INSTANCE_LAUNCH",
+    "autoscaling:EC2_INSTANCE_TERMINATE",
+    "autoscaling:EC2_INSTANCE_LAUNCH_ERROR",
+    "autoscaling:EC2_INSTANCE_TERMINATE_ERROR",
+  ]
+
+  topic_arn = var.sns_topic_arn
+}
 resource "aws_autoscaling_policy" "scale_up" {
   name                   = "${var.project_name}-scale-up"
   autoscaling_group_name = aws_autoscaling_group.ecs.name
