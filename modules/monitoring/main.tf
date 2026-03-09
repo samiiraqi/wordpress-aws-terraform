@@ -149,3 +149,38 @@ resource "aws_cloudwatch_metric_alarm" "high_memory" {
 
   alarm_actions = [var.sns_topic_arn]
 }
+
+
+resource "aws_cloudwatch_metric_alarm" "scale_out" {
+  alarm_name          = "${var.project_name}-scale-out"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = 1
+  metric_name         = "GroupInServiceInstances"
+  namespace           = "AWS/AutoScaling"
+  period              = 60
+  statistic           = "Average"
+  threshold           = 1
+  alarm_description   = "ASG scaled out - new EC2 instance added"
+  alarm_actions       = [var.sns_topic_arn]
+
+  dimensions = {
+    AutoScalingGroupName = "${var.project_name}-ecs-asg"
+  }
+}
+
+resource "aws_cloudwatch_metric_alarm" "scale_in" {
+  alarm_name          = "${var.project_name}-scale-in"
+  comparison_operator = "LessThanThreshold"
+  evaluation_periods  = 1
+  metric_name         = "GroupInServiceInstances"
+  namespace           = "AWS/AutoScaling"
+  period              = 60
+  statistic           = "Average"
+  threshold           = 2
+  alarm_description   = "ASG scaled in - EC2 instance removed"
+  alarm_actions       = [var.sns_topic_arn]
+
+  dimensions = {
+    AutoScalingGroupName = "${var.project_name}-ecs-asg"
+  }
+}
