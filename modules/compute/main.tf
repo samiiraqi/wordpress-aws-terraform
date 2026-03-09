@@ -333,3 +333,48 @@ depends_on = [
   null_resource.docker_build_push
 ]
 }
+# ECS Service Auto Scaling
+resource "aws_appautoscaling_target" "ecs_service" {
+  max_capacity       = 4
+  min_capacity       = 1
+  resource_id        = "service/${aws_ecs_cluster.main.name}/${aws_ecs_service.wordpress.name}"
+  scalable_dimension = "ecs:service:DesiredCount"
+  service_namespace  = "ecs"
+}
+
+# Scale up based on CPU
+resource "aws_appautoscaling_policy" "ecs_cpu" {
+  name               = "${var.project_name}-ecs-cpu-scaling"
+  policy_type        = "TargetTrackingScaling"
+  resource_id        = aws_appautoscaling_target.ecs_service.resource_id
+  scalable_dimension = aws_appautoscaling_target.ecs_service.scalable_dimension
+  service_namespace  = aws_appautoscaling_target.ecs_service.service_namespace
+
+  target_tracking_scaling_policy_configuration {
+    predefined_metric_specification {
+      predefined_metric_type = "ECSServiceAverageCPUUtilization"
+    }
+    target_value       = 50
+    scale_in_cooldown  = 300
+    scale_out_cooldown = 60
+  }
+}
+
+# Scale up based on ALB RequestCount
+resource "aws_appautoscaling_policy" "ecs_requests" {
+  name               = "${var.project_name}-ecs-requests-scaling"
+  policy_type        = "TargetTrackingScaling"
+  resource_id        = aws_appautoscaling_target.ecs_service.resource_id
+  scalable_dimension = aws_appautoscaling_target.ecs_service.scalable_dimension
+  service_namespace  = aws_appautoscaling_target.ecs_service.service_namespace
+
+  target_tracking_scaling_policy_configuration {
+    predefined_metric_specification {
+      predefined_metric_type = "ALBRequestCountPerTarget"
+      resource_label         = "${aws_lb.main.arn_suffix}/${aws_lb_target_group.wordpress.arn_suffix}"
+    }
+    target_value       = 100
+    scale_in_cooldown  = 300
+    scale_out_cooldown = 60
+  }
+}
