@@ -1,11 +1,11 @@
 output "alb_sg_id" {
-  value = aws_security_group.alb.id
+  value = module.alb_sg.security_group_id
 }
 
 output "ecs_sg_id" {
-  value = aws_security_group.ecs.id
+  value = module.ecs_sg.security_group_id
 }
 
 output "rds_sg_id" {
-  value = aws_security_group.rds.id
+  value = module.rds_sg.security_group_id
 }

@@ -1,11 +1,16 @@
 output "db_endpoint" {
-  value = aws_db_instance.main.endpoint
+  value = module.rds.db_instance_endpoint
 }
 
 output "db_name" {
-  value = aws_db_instance.main.db_name
+  value = module.rds.db_instance_name
 }
 
 output "db_username" {
-  value = aws_db_instance.main.username
+  value = module.rds.db_instance_username
+}
+
+output "db_secret_arn" {
+  value       = aws_secretsmanager_secret.db_password.arn
+  description = "ARN of the secret containing DB credentials"
 }

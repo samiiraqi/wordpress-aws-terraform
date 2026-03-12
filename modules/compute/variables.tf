@@ -3,6 +3,9 @@ terraform {
     aws = {
       source = "hashicorp/aws"
     }
+    null = {
+      source = "hashicorp/null"
+    }
   }
 }
 
@@ -42,10 +45,11 @@ variable "db_username" {
   type = string
 }
 
-variable "db_password" {
-  type      = string
-  sensitive = true
+variable "db_secret_arn" {
+  type        = string
+  description = "ARN of Secrets Manager secret containing DB credentials"
 }
+
 variable "sns_topic_arn" {
   type        = string
   description = "SNS topic ARN for notifications"

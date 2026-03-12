@@ -7,15 +7,15 @@ output "vpc_id" {
 }
 
 output "public_subnet_ids" {
-  value = module.networking.public_subnet_ids
+  value = module.networking.public_subnets
 }
 
 output "pseudo_private_subnet_ids" {
-  value = module.networking.pseudo_private_subnet_ids
+  value = module.networking.intra_subnets
 }
 
 output "private_subnet_ids" {
-  value = module.networking.private_subnet_ids
+  value = module.networking.private_subnets
 }
 
 output "alb_sg_id" {
@@ -39,8 +39,10 @@ output "db_name" {
 }
 
 output "db_username" {
-  value = module.database.db_username
+  value     = module.database.db_username
+  sensitive = true
 }
+
 output "alb_dns_name" {
   value = module.compute.alb_dns_name
 }

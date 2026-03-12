@@ -52,10 +52,20 @@ resource "aws_efs_mount_target" "wordpress" {
   subnet_id       = var.pseudo_private_subnet_ids[count.index]
   security_groups = [var.ecs_sg_id]
 }
+module "ecs_cluster" {
+  source  = "terraform-aws-modules/ecs/aws"
+  version = "5.2.2"
 
-resource "aws_ecs_cluster" "main" {
-  name = "${var.project_name}-cluster"
-  tags = { Name = "${var.project_name}-cluster" }
+  cluster_name = "${var.project_name}-cluster"
+
+  cluster_settings = {
+    name  = "containerInsights"
+    value = "enabled"
+  }
+
+  tags = {
+    Name = "${var.project_name}-cluster"
+  }
 }
 
 resource "aws_iam_role" "ecs_instance_role" {
@@ -99,6 +109,20 @@ resource "aws_iam_role_policy_attachment" "ecs_task_execution_ecr" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
 }
 
+resource "aws_iam_role_policy" "ecs_secrets" {
+  name = "${var.project_name}-ecs-secrets"
+  role = aws_iam_role.ecs_task_execution_role.name
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect   = "Allow"
+      Action   = ["secretsmanager:GetSecretValue"]
+      Resource = [var.db_secret_arn]
+    }]
+  })
+}
+
 resource "aws_cloudwatch_log_group" "wordpress" {
   name              = "/ecs/${var.project_name}"
   retention_in_days = 7
@@ -128,11 +152,17 @@ resource "aws_ecs_task_definition" "wordpress" {
       memory    = 256
 
       environment = [
-        { name = "WORDPRESS_DB_HOST",     value = var.db_endpoint },
-        { name = "WORDPRESS_DB_NAME",     value = var.db_name },
-        { name = "WORDPRESS_DB_USER",     value = var.db_username },
-        { name = "WORDPRESS_DB_PASSWORD", value = var.db_password }
-      ]
+  { name = "WORDPRESS_DB_HOST", value = var.db_endpoint },
+  { name = "WORDPRESS_DB_NAME", value = var.db_name },
+  { name = "WORDPRESS_DB_USER", value = var.db_username }
+]
+
+secrets = [
+  {
+    name      = "WORDPRESS_DB_PASSWORD"
+    valueFrom = "${var.db_secret_arn}:password::"
+  }
+]
 
       healthCheck = {
         command     = ["CMD-SHELL", "php-fpm -t || exit 1"]
@@ -186,42 +216,49 @@ resource "aws_ecs_task_definition" "wordpress" {
   ])
 }
 
-resource "aws_lb" "main" {
+
+module "alb" {
+  source  = "terraform-aws-modules/alb/aws"
+  version = "8.7.0"
+
   name               = "${var.project_name}-alb"
-  internal           = false
   load_balancer_type = "application"
-  security_groups    = [var.alb_sg_id]
+  vpc_id             = var.vpc_id
   subnets            = var.public_subnet_ids
-  tags = { Name = "${var.project_name}-alb" }
+  security_groups    = [var.alb_sg_id]
+
+  target_groups = [
+    {
+      name             = "${var.project_name}-tg"
+      backend_protocol = "HTTP"
+      backend_port     = 80
+      target_type      = "instance"
+
+      health_check = {
+        enabled             = true
+        healthy_threshold   = 2
+        unhealthy_threshold = 3
+        timeout             = 5
+        interval            = 30
+        path                = "/"
+        matcher             = "200,301,302"
+      }
+    }
+  ]
+
+  http_tcp_listeners = [
+    {
+      port               = 80
+      protocol           = "HTTP"
+      target_group_index = 0
+    }
+  ]
+
+  tags = {
+    Name = "${var.project_name}-alb"
+  }
 }
 
-resource "aws_lb_target_group" "wordpress" {
-  name        = "${var.project_name}-tg"
-  port        = 80
-  protocol    = "HTTP"
-  vpc_id      = var.vpc_id
-  target_type = "instance"
-  health_check {
-    enabled             = true
-    healthy_threshold   = 2
-    unhealthy_threshold = 3
-    timeout             = 5
-    interval            = 30
-    path                = "/"
-    matcher             = "200,301,302"
-  }
-  tags = { Name = "${var.project_name}-tg" }
-}
-
-resource "aws_lb_listener" "http" {
-  load_balancer_arn = aws_lb.main.arn
-  port              = 80
-  protocol          = "HTTP"
-  default_action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.wordpress.arn
-  }
-}
 
 data "aws_ssm_parameter" "ecs_ami" {
   name = "/aws/service/ecs/optimized-ami/amazon-linux-2/recommended/image_id"
@@ -239,7 +276,7 @@ resource "aws_launch_template" "ecs" {
     security_groups             = [var.ecs_sg_id]
   }
 
-  user_data = base64encode("#!/bin/bash\necho ECS_CLUSTER=${aws_ecs_cluster.main.name} >> /etc/ecs/ecs.config\n")
+  user_data = base64encode("#!/bin/bash\necho ECS_CLUSTER=${module.ecs_cluster.cluster_name} >> /etc/ecs/ecs.config\n")
 
   tag_specifications {
     resource_type = "instance"
@@ -302,7 +339,7 @@ resource "aws_ecs_capacity_provider" "main" {
 }
 
 resource "aws_ecs_cluster_capacity_providers" "main" {
-  cluster_name       = aws_ecs_cluster.main.name
+  cluster_name       = module.ecs_cluster.cluster_name
   capacity_providers = [aws_ecs_capacity_provider.main.name]
   default_capacity_provider_strategy {
     capacity_provider = aws_ecs_capacity_provider.main.name
@@ -312,7 +349,7 @@ resource "aws_ecs_cluster_capacity_providers" "main" {
 
 resource "aws_ecs_service" "wordpress" {
   name                              = "${var.project_name}-service"
-  cluster                           = aws_ecs_cluster.main.id
+  cluster                           = module.ecs_cluster.cluster_id
   task_definition                   = aws_ecs_task_definition.wordpress.arn
   desired_count                     = 1
   health_check_grace_period_seconds = 120
@@ -323,12 +360,12 @@ resource "aws_ecs_service" "wordpress" {
   }
 
   load_balancer {
-    target_group_arn = aws_lb_target_group.wordpress.arn
+    target_group_arn = module.alb.target_group_arns[0]
     container_name   = "nginx"
     container_port   = 80
   }
 depends_on = [
-  aws_lb_listener.http,
+  module.alb,
   aws_iam_role_policy_attachment.ecs_task_execution_role,
   null_resource.docker_build_push
 ]
@@ -337,7 +374,7 @@ depends_on = [
 resource "aws_appautoscaling_target" "ecs_service" {
   max_capacity       = 4
   min_capacity       = 1
-  resource_id        = "service/${aws_ecs_cluster.main.name}/${aws_ecs_service.wordpress.name}"
+  resource_id        = "service/${module.ecs_cluster.cluster_name}/${aws_ecs_service.wordpress.name}"
   scalable_dimension = "ecs:service:DesiredCount"
   service_namespace  = "ecs"
 }
@@ -371,7 +408,7 @@ resource "aws_appautoscaling_policy" "ecs_requests" {
   target_tracking_scaling_policy_configuration {
     predefined_metric_specification {
       predefined_metric_type = "ALBRequestCountPerTarget"
-      resource_label         = "${aws_lb.main.arn_suffix}/${aws_lb_target_group.wordpress.arn_suffix}"
+      resource_label = "${module.alb.lb_arn_suffix}/${module.alb.target_group_arn_suffixes[0]}"
     }
     target_value       = 100
     scale_in_cooldown  = 300

@@ -1,10 +1,3 @@
-terraform {
-  required_providers {
-    aws = {
-      source = "hashicorp/aws"
-    }
-  }
-}
 
 variable "project_name" {
   type = string
@@ -26,9 +19,4 @@ variable "db_name" {
 variable "db_username" {
   type    = string
   default = "wordpress_user"
-}
-
-variable "db_password" {
-  type      = string
-  sensitive = true
 }

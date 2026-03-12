@@ -7,7 +7,3 @@ variable "project_name" {
   type    = string
   default = "wordpress"
 }
-
-variable "alert_email" {
-  type = string
-}
