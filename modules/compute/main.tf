@@ -47,9 +47,9 @@ resource "aws_efs_file_system" "wordpress" {
 }
 
 resource "aws_efs_mount_target" "wordpress" {
-  count           = length(var.pseudo_private_subnet_ids)
+  count           = length(var.public_subnet_ids)
   file_system_id  = aws_efs_file_system.wordpress.id
-  subnet_id       = var.pseudo_private_subnet_ids[count.index]
+  subnet_id       = var.public_subnet_ids[count.index]
   security_groups = [var.ecs_sg_id]
 }
 module "ecs_cluster" {
@@ -160,7 +160,7 @@ resource "aws_ecs_task_definition" "wordpress" {
 secrets = [
   {
     name      = "WORDPRESS_DB_PASSWORD"
-    valueFrom = "${var.db_secret_arn}:password::"
+    valueFrom = "${var.db_secret_arn}"
   }
 ]
 
@@ -289,7 +289,7 @@ resource "aws_autoscaling_group" "ecs" {
   desired_capacity    = 1
   min_size            = 1
   max_size            = 3
-  vpc_zone_identifier = var.pseudo_private_subnet_ids
+  vpc_zone_identifier = var.public_subnet_ids
 
   launch_template {
     id      = aws_launch_template.ecs.id
@@ -352,6 +352,7 @@ resource "aws_ecs_service" "wordpress" {
   cluster                           = module.ecs_cluster.cluster_id
   task_definition                   = aws_ecs_task_definition.wordpress.arn
   desired_count                     = 1
+  enable_execute_command  = true
   health_check_grace_period_seconds = 120
 
   capacity_provider_strategy {

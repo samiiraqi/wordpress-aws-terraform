@@ -49,6 +49,7 @@ module "rds" {
   password = random_password.db_password.result
   port     = "3306"
 
+  create_db_subnet_group = true
   subnet_ids             = var.private_subnet_ids
   vpc_security_group_ids = [var.rds_sg_id]
 
@@ -56,7 +57,6 @@ module "rds" {
   skip_final_snapshot = true
   multi_az            = false
 
-  # Disable creation of option group and parameter group - use defaults
   create_db_option_group    = false
   create_db_parameter_group = false
 
