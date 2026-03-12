@@ -17,7 +17,7 @@ variable "vpc_id" {
   type = string
 }
 
-variable "pseudo_private_subnet_ids" {
+variable "intra_subnet_ids" {
   type = list(string)
 }
 

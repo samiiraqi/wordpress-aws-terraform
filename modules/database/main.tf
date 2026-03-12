@@ -18,6 +18,7 @@ resource "random_password" "db_password" {
 resource "aws_secretsmanager_secret" "db_password" {
   name                    = "${var.project_name}-db-password"
   recovery_window_in_days = 0
+  kms_key_id              = var.kms_secretsmanager_key_arn
   tags = {
     Name = "${var.project_name}-db-password"
   }
@@ -55,6 +56,8 @@ module "rds" {
 
   publicly_accessible = false
   skip_final_snapshot = true
+  storage_encrypted   = true
+  kms_key_id          = var.kms_rds_key_arn
   multi_az            = false
 
   create_db_option_group    = false

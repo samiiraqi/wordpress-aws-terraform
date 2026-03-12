@@ -51,6 +51,10 @@ output "ecs_cluster_name" {
   value = module.compute.ecs_cluster_name
 }
 
-output "efs_id" {
-  value = module.compute.efs_id
+output "kms_secretsmanager_key_arn" {
+  value = module.kms_secretsmanager.key_arn
+}
+
+output "kms_rds_key_arn" {
+  value = module.kms_rds.key_arn
 }

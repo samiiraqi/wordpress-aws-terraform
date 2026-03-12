@@ -35,23 +35,40 @@ resource "null_resource" "docker_build_push" {
 
   depends_on = [aws_ecr_repository.wordpress]
 }
-
-# EFS - Shared storage between nginx and php-fpm
-resource "aws_efs_file_system" "wordpress" {
-  creation_token = "${var.project_name}-efs"
-  encrypted      = true
-
+# ECR Repository for custom nginx image
+resource "aws_ecr_repository" "nginx" {
+  name                 = "${var.project_name}-nginx"
+  image_tag_mutability = "MUTABLE"
+  force_delete         = true
+  image_scanning_configuration {
+    scan_on_push = true
+  }
   tags = {
-    Name = "${var.project_name}-efs"
+    Name = "${var.project_name}-nginx"
   }
 }
 
-resource "aws_efs_mount_target" "wordpress" {
-  count           = length(var.public_subnet_ids)
-  file_system_id  = aws_efs_file_system.wordpress.id
-  subnet_id       = var.public_subnet_ids[count.index]
-  security_groups = [var.ecs_sg_id]
+# Build and push nginx Docker image to ECR
+resource "null_resource" "docker_build_push_nginx" {
+  triggers = {
+    dockerfile = filemd5("${path.module}/../../docker/nginx/Dockerfile")
+  }
+  provisioner "local-exec" {
+    command = <<-EOF
+      aws ecr get-login-password --region us-east-1 | \
+        docker login --username AWS --password-stdin \
+        ${aws_ecr_repository.nginx.repository_url}
+      
+      docker buildx build \
+        --platform linux/amd64 \
+        --push \
+        -t ${aws_ecr_repository.nginx.repository_url}:latest \
+        ${path.module}/../../docker/nginx/
+    EOF
+  }
+  depends_on = [aws_ecr_repository.nginx]
 }
+
 module "ecs_cluster" {
   source  = "terraform-aws-modules/ecs/aws"
   version = "5.2.2"
@@ -135,13 +152,9 @@ resource "aws_ecs_task_definition" "wordpress" {
   task_role_arn      = aws_iam_role.ecs_task_execution_role.arn
   execution_role_arn = aws_iam_role.ecs_task_execution_role.arn
 
-  volume {
-    name = "wordpress-data"
-    efs_volume_configuration {
-      file_system_id = aws_efs_file_system.wordpress.id
-      root_directory = "/"
-    }
-  }
+ volume {
+  name = "wordpress-data"
+}
 
   container_definitions = jsonencode([
     {
@@ -185,14 +198,14 @@ secrets = [
     },
     {
       name      = "nginx"
-      image     = "nginx:alpine"
+      image     = "${aws_ecr_repository.nginx.repository_url}:latest"
       essential = true
       memory    = 128
       links     = ["php-fpm"]
 
-      entryPoint = ["/bin/sh", "-c"]
-      command    = ["printf 'server {\\n  listen 80;\\n  root /var/www/html;\\n  index index.php;\\n  location / { try_files $uri $uri/ /index.php?$args; }\\n  location ~ \\.php$ { fastcgi_pass php-fpm:9000; fastcgi_index index.php; include fastcgi_params; fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name; }\\n}\\n' > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"]
 
+
+      
       portMappings = [{ containerPort = 80, hostPort = 80, protocol = "tcp" }]
 
       mountPoints = [{ sourceVolume = "wordpress-data", containerPath = "/var/www/html", readOnly = true }]
@@ -289,7 +302,7 @@ resource "aws_autoscaling_group" "ecs" {
   desired_capacity    = 1
   min_size            = 1
   max_size            = 3
-  vpc_zone_identifier = var.public_subnet_ids
+  vpc_zone_identifier = var.intra_subnet_ids
 
   launch_template {
     id      = aws_launch_template.ecs.id
@@ -368,7 +381,8 @@ resource "aws_ecs_service" "wordpress" {
 depends_on = [
   module.alb,
   aws_iam_role_policy_attachment.ecs_task_execution_role,
-  null_resource.docker_build_push
+  null_resource.docker_build_push,
+  null_resource.docker_build_push_nginx
 ]
 }
 # ECS Service Auto Scaling
