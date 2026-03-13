@@ -48,6 +48,7 @@ module "rds" {
   db_name  = var.db_name
   username = var.db_username
   password = random_password.db_password.result
+  manage_master_user_password = false
   port     = "3306"
 
   create_db_subnet_group = true
