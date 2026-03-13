@@ -34,15 +34,7 @@ module "ecs_sg" {
       source_security_group_id = module.alb_sg.security_group_id
     }
   ]
-  ingress_with_cidr_blocks = [
-  {
-    description = "HTTPS for VPC Endpoints"
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = "10.0.0.0/16"
-  }
-]
+  
 
   
 
