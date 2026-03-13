@@ -10,7 +10,7 @@ output "public_subnet_ids" {
   value = module.networking.public_subnets
 }
 
-output "pseudo_private_subnet_ids" {
+output "intra_subnet_ids" {
   value = module.networking.intra_subnets
 }
 

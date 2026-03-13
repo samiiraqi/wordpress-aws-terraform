@@ -170,9 +170,3 @@ module "compute" {
   db_secret_arn             = module.database.db_secret_arn
   sns_topic_arn             = module.billing.sns_topic_arn
 }
-module "monitoring" {
-  source         = "./modules/monitoring"
-  project_name   = var.project_name
-  alb_arn_suffix = module.compute.alb_arn_suffix
-  sns_topic_arn  = module.billing.sns_topic_arn
-}
