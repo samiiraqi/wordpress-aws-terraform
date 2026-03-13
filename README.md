@@ -1,93 +1,89 @@
-# WordPress on AWS with Terraform
+# WordPress on AWS — Terraform
 
-A production-ready WordPress deployment on AWS, built with Terraform.
-This project was built for learning and practicing real-world cloud infrastructure.
+WordPress deployment on AWS using Terraform.
 
 ## Architecture
+
 ```
-Internet
-    │
-    ▼
-[ALB - Application Load Balancer]  →  Public Subnets
-    │
-    ▼
-[ECS EC2 - t2.micro]               →  Pseudo-Private Subnets
-  ├── Container: nginx              →  Handles HTTP requests
-  └── Container: php-fpm           →  Runs WordPress
-    │
-    ▼
-[RDS MySQL 8.0]                    →  Private Subnets
-- **ECR** - Custom WordPress php-fpm image built for AMD64
+Internet → ALB → ECS (nginx + php-fpm) → RDS MySQL
 ```
 
-## Infrastructure Components
+- **VPC** — 3-tier subnets: public (ALB), intra (ECS), private (RDS)
+- **ECS EC2** — t2.micro, two containers sharing a Docker volume
+- **RDS MySQL 8.0** — db.t3.micro in private subnets
+- **Secrets Manager** — auto-generated DB password
+- **VPC Endpoints** — private communication with AWS services (no NAT Gateway)
+- **Billing alerts** — SNS email notification on charges
 
-- **VPC** - Isolated network with 3 subnet tiers across 2 Availability Zones
-- **ALB** - Application Load Balancer for routing traffic
-- **ECS** - EC2 launch type running nginx + php-fpm containers
-- **EFS** - Shared file system between nginx and php-fpm containers
-- **RDS** - MySQL 8.0 database in private subnets
-- **Security Groups** - Strict traffic rules between each layer
-- **CloudWatch** - Logging for all containers
-- **SNS** - Billing alerts
+## Usage
 
-## Key Design Decisions
-
-**Pseudo-Private Subnets instead of NAT Gateway**
-ECS instances have public IPs but are protected by Security Groups.
-This avoids the ~$32/month cost of a NAT Gateway while maintaining security.
-
-**nginx + php-fpm separation**
-nginx handles static files and proxies PHP requests to php-fpm.
-This is the industry standard for running WordPress in containers.
-
-**EFS Shared Storage**
-Both nginx and php-fpm need access to WordPress files.
-EFS provides a shared filesystem that both containers can mount simultaneously.
-
-## Project Structure
-```
-wordpress-infra/
-├── main.tf
-├── variables.tf
-├── outputs.tf
-└── modules/
-    ├── billing/      # CloudWatch billing alarm + SNS
-    ├── networking/   # VPC, subnets, route tables
-    ├── security/     # Security groups
-    ├── database/     # RDS MySQL
-    └── compute/      # ECS, ALB, EFS
+### 1. Bootstrap (one-time)
+```bash
+cd bootstrap
+terraform init && terraform apply
 ```
 
-## What I Learned
+### 2. Deploy
+```bash
+cd ..
+terraform init && terraform apply# WordPress on AWS — Terraform
 
-- How to design multi-tier AWS network architecture
-- How to write modular Terraform code
-- How to run multi-container applications with ECS
-- How to secure infrastructure using Security Groups
-- How to share storage between containers using EFS
-- How to connect ECS to RDS securely
+WordPress deployment on AWS using Terraform.
 
+## Architecture
 
-## Production Improvements
+```
+Internet → ALB → ECS (nginx + php-fpm) → RDS MySQL
+```
 
-This project was built for learning. In a real production environment I would improve:
+- **VPC** — 3-tier subnets: public (ALB), intra (ECS), private (RDS)
+- **ECS EC2** — t2.micro, two containers sharing a Docker volume
+- **RDS MySQL 8.0** — db.t3.micro in private subnets
+- **Secrets Manager** — auto-generated DB password
+- **VPC Endpoints** — private communication with AWS services (no NAT Gateway)
+- **Billing alerts** — SNS email notification on charges
 
-- **Database password** - Store in AWS Secrets Manager instead of tfvars file
-- **HTTPS** - Add SSL certificate with ACM and redirect HTTP to HTTPS
-- **NAT Gateway** - Use real private subnets with NAT Gateway instead of pseudo-private
-- **Multi-AZ RDS** - Enable Multi-AZ for high availability
-- **Auto Scaling** - Scale ECS tasks based on traffic
-- **Terraform State** - Store state in S3 with DynamoDB locking instead of local file
-- **Custom Docker Images** - Build custom nginx image with nginx.conf baked in, stored in AWS ECR instead of using runtime scripts
-- **EFS Initialization** - Use custom Docker image with WordPress 
-  files baked in to avoid container startup timing issues
-- **CI/CD Pipeline** - Automate Docker image builds and pushes to ECR using GitHub Actions
+## Usage
 
-- **Grafana + Prometheus** - Replace CloudWatch Dashboard with Grafana connected to Prometheus for more advanced metrics and visualization
-- **PagerDuty** - Replace email notifications with PagerDuty for on-call alerting and incident management
-- **Chaos Engineering** - Use AWS Fault Injection Simulator (FIS) to test system resilience by randomly terminating instances
-- **Slack Integration** - Route SNS notifications to Slack so the entire team sees alerts in real time
-## Author
+### 1. Bootstrap (one-time)
+```bash
+cd bootstrap
+terraform init && terraform apply
+```
 
-Sami Iraqi
+### 2. Deploy
+```bash
+cd ..
+terraform init && terraform apply
+```
+
+### 3. Open WordPress
+```
+http://<alb_dns_name>
+```
+
+### 4. Destroy when done
+```bash
+terraform destroy
+```
+
+## Notes
+
+- Docker images are built and pushed to ECR automatically during `terraform apply`
+- Destroy resources after testing to avoid charges (ALB ~$16/month, VPC Endpoints ~$7/each)
+```
+
+### 3. Open WordPress
+```
+http://<alb_dns_name>
+```
+
+### 4. Destroy when done
+```bash
+terraform destroy
+```
+
+## Notes
+
+- Docker images are built and pushed to ECR automatically during `terraform apply`
+- Destroy resources after testing to avoid charges (ALB ~$16/month, VPC Endpoints ~$7/each)
