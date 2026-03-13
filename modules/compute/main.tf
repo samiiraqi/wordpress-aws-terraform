@@ -139,6 +139,19 @@ resource "aws_iam_role_policy" "ecs_secrets" {
     }]
   })
 }
+resource "aws_iam_role_policy" "ecs_kms" {
+  name = "${var.project_name}-ecs-kms"
+  role = aws_iam_role.ecs_task_execution_role.name
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect   = "Allow"
+      Action   = ["kms:Decrypt", "kms:GenerateDataKey"]
+      Resource = [var.kms_secretsmanager_key_arn]
+    }]
+  })
+}
 
 resource "aws_cloudwatch_log_group" "wordpress" {
   name              = "/ecs/${var.project_name}"
@@ -165,7 +178,7 @@ resource "aws_ecs_task_definition" "wordpress" {
       memory    = 256
 
       environment = [
-  { name = "WORDPRESS_DB_HOST", value = var.db_endpoint },
+  { name = "WORDPRESS_DB_HOST", value = split(":", var.db_endpoint)[0] },
   { name = "WORDPRESS_DB_NAME", value = var.db_name },
   { name = "WORDPRESS_DB_USER", value = var.db_username }
 ]
@@ -173,7 +186,7 @@ resource "aws_ecs_task_definition" "wordpress" {
 secrets = [
   {
     name      = "WORDPRESS_DB_PASSWORD"
-    valueFrom = "${var.db_secret_arn}"
+    valueFrom = "${var.db_secret_arn}:password::"
   }
 ]
 

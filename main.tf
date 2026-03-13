@@ -112,6 +112,26 @@ resource "aws_vpc_endpoint" "ecs" {
   private_dns_enabled = true
   tags = { Name = "${var.project_name}-ecs" }
 }
+resource "aws_vpc_endpoint" "ecs_agent" {
+  vpc_id              = module.networking.vpc_id
+  service_name        = "com.amazonaws.us-east-1.ecs-agent"
+  vpc_endpoint_type   = "Interface"
+  subnet_ids          = module.networking.intra_subnets
+  security_group_ids  = [module.security.ecs_sg_id]
+  private_dns_enabled = true
+  tags = { Name = "${var.project_name}-ecs-agent" }
+}
+
+resource "aws_vpc_endpoint" "ecs_telemetry" {
+  vpc_id              = module.networking.vpc_id
+  service_name        = "com.amazonaws.us-east-1.ecs-telemetry"
+  vpc_endpoint_type   = "Interface"
+  subnet_ids          = module.networking.intra_subnets
+  security_group_ids  = [module.security.ecs_sg_id]
+  private_dns_enabled = true
+  tags = { Name = "${var.project_name}-ecs-telemetry" }
+}
+
 
 resource "aws_vpc_endpoint" "secretsmanager" {
   vpc_id              = module.networking.vpc_id
@@ -139,6 +159,35 @@ resource "aws_vpc_endpoint" "s3" {
   vpc_endpoint_type = "Gateway"
   route_table_ids   = module.networking.intra_route_table_ids
   tags = { Name = "${var.project_name}-s3" }
+}
+resource "aws_vpc_endpoint" "ssm" {
+  vpc_id              = module.networking.vpc_id
+  service_name        = "com.amazonaws.us-east-1.ssm"
+  vpc_endpoint_type   = "Interface"
+  subnet_ids          = module.networking.intra_subnets
+  security_group_ids  = [module.security.ecs_sg_id]
+  private_dns_enabled = true
+  tags = { Name = "${var.project_name}-ssm" }
+}
+
+resource "aws_vpc_endpoint" "ssmmessages" {
+  vpc_id              = module.networking.vpc_id
+  service_name        = "com.amazonaws.us-east-1.ssmmessages"
+  vpc_endpoint_type   = "Interface"
+  subnet_ids          = module.networking.intra_subnets
+  security_group_ids  = [module.security.ecs_sg_id]
+  private_dns_enabled = true
+  tags = { Name = "${var.project_name}-ssmmessages" }
+}
+
+resource "aws_vpc_endpoint" "ec2messages" {
+  vpc_id              = module.networking.vpc_id
+  service_name        = "com.amazonaws.us-east-1.ec2messages"
+  vpc_endpoint_type   = "Interface"
+  subnet_ids          = module.networking.intra_subnets
+  security_group_ids  = [module.security.ecs_sg_id]
+  private_dns_enabled = true
+  tags = { Name = "${var.project_name}-ec2messages" }
 }
 
 module "security" {
@@ -169,4 +218,5 @@ module "compute" {
   db_username               = module.database.db_username
   db_secret_arn             = module.database.db_secret_arn
   sns_topic_arn             = module.billing.sns_topic_arn
+  kms_secretsmanager_key_arn = module.kms_secretsmanager.key_arn
 }

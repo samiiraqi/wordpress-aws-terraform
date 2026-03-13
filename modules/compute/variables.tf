@@ -54,3 +54,6 @@ variable "sns_topic_arn" {
   type        = string
   description = "SNS topic ARN for notifications"
 }
+variable "kms_secretsmanager_key_arn" {
+  type = string
+}
