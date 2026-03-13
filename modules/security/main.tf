@@ -35,14 +35,7 @@ module "ecs_sg" {
     }
   ]
 
-  ingress_with_self = [
-    {
-      description = "NFS for EFS"
-      from_port   = 2049
-      to_port     = 2049
-      protocol    = "tcp"
-    }
-  ]
+  
 
   egress_rules = ["all-all"]
 
