@@ -58,112 +58,24 @@ module "networking" {
     Name = "${var.project_name}-vpc"
   }
 }
-resource "aws_vpc_endpoint" "ecr_api" {
-  vpc_id              = module.networking.vpc_id
-  service_name        = "com.amazonaws.us-east-1.ecr.api"
-  vpc_endpoint_type   = "Interface"
-  subnet_ids          = module.networking.intra_subnets
-  security_group_ids  = [module.security.ecs_sg_id]
-  private_dns_enabled = true
-  tags = { Name = "${var.project_name}-ecr-api" }
-}
-
-resource "aws_vpc_endpoint" "ecr_dkr" {
-  vpc_id              = module.networking.vpc_id
-  service_name        = "com.amazonaws.us-east-1.ecr.dkr"
-  vpc_endpoint_type   = "Interface"
-  subnet_ids          = module.networking.intra_subnets
-  security_group_ids  = [module.security.ecs_sg_id]
-  private_dns_enabled = true
-  tags = { Name = "${var.project_name}-ecr-dkr" }
-}
-
-resource "aws_vpc_endpoint" "ecs" {
-  vpc_id              = module.networking.vpc_id
-  service_name        = "com.amazonaws.us-east-1.ecs"
-  vpc_endpoint_type   = "Interface"
-  subnet_ids          = module.networking.intra_subnets
-  security_group_ids  = [module.security.ecs_sg_id]
-  private_dns_enabled = true
-  tags = { Name = "${var.project_name}-ecs" }
-}
-resource "aws_vpc_endpoint" "ecs_agent" {
-  vpc_id              = module.networking.vpc_id
-  service_name        = "com.amazonaws.us-east-1.ecs-agent"
-  vpc_endpoint_type   = "Interface"
-  subnet_ids          = module.networking.intra_subnets
-  security_group_ids  = [module.security.ecs_sg_id]
-  private_dns_enabled = true
-  tags = { Name = "${var.project_name}-ecs-agent" }
-}
-
-resource "aws_vpc_endpoint" "ecs_telemetry" {
-  vpc_id              = module.networking.vpc_id
-  service_name        = "com.amazonaws.us-east-1.ecs-telemetry"
-  vpc_endpoint_type   = "Interface"
-  subnet_ids          = module.networking.intra_subnets
-  security_group_ids  = [module.security.ecs_sg_id]
-  private_dns_enabled = true
-  tags = { Name = "${var.project_name}-ecs-telemetry" }
-}
 
 
-resource "aws_vpc_endpoint" "secretsmanager" {
-  vpc_id              = module.networking.vpc_id
-  service_name        = "com.amazonaws.us-east-1.secretsmanager"
-  vpc_endpoint_type   = "Interface"
-  subnet_ids          = module.networking.intra_subnets
-  security_group_ids  = [module.security.ecs_sg_id]
-  private_dns_enabled = true
-  tags = { Name = "${var.project_name}-secretsmanager" }
-}
 
-resource "aws_vpc_endpoint" "logs" {
-  vpc_id              = module.networking.vpc_id
-  service_name        = "com.amazonaws.us-east-1.logs"
-  vpc_endpoint_type   = "Interface"
-  subnet_ids          = module.networking.intra_subnets
-  security_group_ids  = [module.security.ecs_sg_id]
-  private_dns_enabled = true
-  tags = { Name = "${var.project_name}-logs" }
-}
 
-resource "aws_vpc_endpoint" "s3" {
-  vpc_id            = module.networking.vpc_id
-  service_name      = "com.amazonaws.us-east-1.s3"
-  vpc_endpoint_type = "Gateway"
-  route_table_ids   = module.networking.intra_route_table_ids
-  tags = { Name = "${var.project_name}-s3" }
-}
-resource "aws_vpc_endpoint" "ssm" {
-  vpc_id              = module.networking.vpc_id
-  service_name        = "com.amazonaws.us-east-1.ssm"
-  vpc_endpoint_type   = "Interface"
-  subnet_ids          = module.networking.intra_subnets
-  security_group_ids  = [module.security.ecs_sg_id]
-  private_dns_enabled = true
-  tags = { Name = "${var.project_name}-ssm" }
-}
 
-resource "aws_vpc_endpoint" "ssmmessages" {
-  vpc_id              = module.networking.vpc_id
-  service_name        = "com.amazonaws.us-east-1.ssmmessages"
-  vpc_endpoint_type   = "Interface"
-  subnet_ids          = module.networking.intra_subnets
-  security_group_ids  = [module.security.ecs_sg_id]
-  private_dns_enabled = true
-  tags = { Name = "${var.project_name}-ssmmessages" }
-}
 
-resource "aws_vpc_endpoint" "ec2messages" {
-  vpc_id              = module.networking.vpc_id
-  service_name        = "com.amazonaws.us-east-1.ec2messages"
-  vpc_endpoint_type   = "Interface"
-  subnet_ids          = module.networking.intra_subnets
-  security_group_ids  = [module.security.ecs_sg_id]
-  private_dns_enabled = true
-  tags = { Name = "${var.project_name}-ec2messages" }
-}
+
+
+
+
+
+
+
+
+
+
+
+
 
 module "security" {
   source       = "./modules/security"
