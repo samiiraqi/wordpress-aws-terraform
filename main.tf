@@ -35,33 +35,8 @@ module "billing" {
   billing_threshold = 1
 }
 
-module "kms_secretsmanager" {
-  source  = "terraform-aws-modules/kms/aws"
-  version = "3.1.0"
 
-  description             = "KMS key for Secrets Manager"
-  deletion_window_in_days = 7
-  enable_key_rotation     = true
-  aliases                 = ["${var.project_name}-secretsmanager"]
 
-  tags = {
-    Name = "${var.project_name}-secretsmanager-key"
-  }
-}
-
-module "kms_rds" {
-  source  = "terraform-aws-modules/kms/aws"
-  version = "3.1.0"
-
-  description             = "KMS key for RDS"
-  deletion_window_in_days = 7
-  enable_key_rotation     = true
-  aliases                 = ["${var.project_name}-rds"]
-
-  tags = {
-    Name = "${var.project_name}-rds-key"
-  }
-}
 
 module "networking" {
   source  = "terraform-aws-modules/vpc/aws"
@@ -201,8 +176,6 @@ module "database" {
   project_name               = var.project_name
   private_subnet_ids         = module.networking.private_subnets
   rds_sg_id                  = module.security.rds_sg_id
-  kms_secretsmanager_key_arn = module.kms_secretsmanager.key_arn
-  kms_rds_key_arn            = module.kms_rds.key_arn
 }
 
 module "compute" {
@@ -218,5 +191,5 @@ module "compute" {
   db_username               = module.database.db_username
   db_secret_arn             = module.database.db_secret_arn
   sns_topic_arn             = module.billing.sns_topic_arn
-  kms_secretsmanager_key_arn = module.kms_secretsmanager.key_arn
+  
 }

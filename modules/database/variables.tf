@@ -20,10 +20,4 @@ variable "db_username" {
   type    = string
   default = "wordpress_user"
 }
-variable "kms_secretsmanager_key_arn" {
-  type = string
-}
 
-variable "kms_rds_key_arn" {
-  type = string
-}

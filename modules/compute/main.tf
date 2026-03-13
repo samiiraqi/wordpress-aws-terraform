@@ -139,19 +139,7 @@ resource "aws_iam_role_policy" "ecs_secrets" {
     }]
   })
 }
-resource "aws_iam_role_policy" "ecs_kms" {
-  name = "${var.project_name}-ecs-kms"
-  role = aws_iam_role.ecs_task_execution_role.name
 
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [{
-      Effect   = "Allow"
-      Action   = ["kms:Decrypt", "kms:GenerateDataKey"]
-      Resource = [var.kms_secretsmanager_key_arn]
-    }]
-  })
-}
 
 resource "aws_cloudwatch_log_group" "wordpress" {
   name              = "/ecs/${var.project_name}"
