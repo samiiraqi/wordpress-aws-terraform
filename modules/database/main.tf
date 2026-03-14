@@ -57,7 +57,7 @@ module "rds" {
 
   publicly_accessible = false
   skip_final_snapshot = true
-  storage_encrypted   = false
+  
   
   multi_az            = false
 
