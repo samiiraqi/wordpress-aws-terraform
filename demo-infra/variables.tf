@@ -17,6 +17,6 @@ variable "tags" {
     Environment = "demo"
     Project     = "demo-infra"
     ManagedBy   = "terraform"
-    Owner       = "samiiraqi"
+    Owner       = "sami"
   }
 }
