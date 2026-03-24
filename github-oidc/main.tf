@@ -52,16 +52,33 @@ data "aws_iam_policy_document" "github_actions" {
     actions = [
       "s3:CreateBucket",
       "s3:DeleteBucket",
-      "s3:PutBucketVersioning",
-      "s3:PutBucketTagging",
-      "s3:GetBucketVersioning",
-      "s3:GetBucketTagging",
       "s3:GetBucketLocation",
+      "s3:GetBucketVersioning",
+      "s3:PutBucketVersioning",
+      "s3:GetBucketTagging",
+      "s3:PutBucketTagging",
+      "s3:GetBucketPublicAccessBlock",
       "s3:PutBucketPublicAccessBlock",
-      "s3:GetBucketPublicAccessBlock"
+      "s3:GetBucketAcl",
+      "s3:GetBucketObjectLockConfiguration",
+      "s3:GetBucketOwnershipControls",
+      "s3:GetBucketPolicy",
+      "s3:GetBucketRequestPayment",
+      "s3:GetBucketWebsite",
+      "s3:GetEncryptionConfiguration",
+      "s3:GetLifecycleConfiguration",
+      "s3:GetReplicationConfiguration",
+      "s3:ListBucket",
+      "s3:GetObject",
+      "s3:PutObject",
+      "s3:DeleteObject",
+      "s3:GetObjectAcl",
+      "s3:GetObjectTagging",
+      "s3:PutObjectTagging"
     ]
     resources = [
-      "arn:aws:s3:::demo-infra-bucket-156041402173"
+      "arn:aws:s3:::demo-infra-bucket-156041402173",
+      "arn:aws:s3:::demo-infra-bucket-156041402173/*"
     ]
   }
 }
