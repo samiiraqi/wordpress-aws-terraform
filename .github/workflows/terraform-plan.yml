@@ -49,7 +49,7 @@ jobs:
           tflint
 
       - name: Run Checkov
-        uses: bridgecrewio/checkov-action@99bb2caf247dfd9f03cf984373bc6043d4e32ebf # v12
+        uses: bridgecrewio/checkov-action@0ce65fae06c148e349f955c3c35ad049c11e838c # v12
         with:
           directory: demo-infra
           framework: terraform
