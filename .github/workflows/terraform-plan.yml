@@ -48,6 +48,13 @@ jobs:
           tflint --init
           tflint
 
+      - name: Run Checkov
+        uses: bridgecrewio/checkov-action@2d5099d166a43f3d0d58e96c3470f52b72e9bef6 # v12
+        with:
+          directory: demo-infra
+          framework: terraform
+          soft_fail: true
+
       - name: Terraform Validate
         run: terraform validate
 
