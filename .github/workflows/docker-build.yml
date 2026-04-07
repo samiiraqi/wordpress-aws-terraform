@@ -64,13 +64,13 @@ jobs:
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
-          docker tag wordpress-php-fpm:latest $ECR_REGISTRY/wordpress-php-fpm:latest
-          docker push $ECR_REGISTRY/wordpress-php-fpm:latest
+          docker tag wordpress-php-fpm:latest "$ECR_REGISTRY/wordpress-php-fpm:latest"
+          docker push "$ECR_REGISTRY/wordpress-php-fpm:latest"
 
       - name: Push nginx image to ECR
         if: github.event_name == 'push'
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
-          docker tag wordpress-nginx:latest $ECR_REGISTRY/wordpress-nginx:latest
-          docker push $ECR_REGISTRY/wordpress-nginx:latest
+          docker tag wordpress-nginx:latest "$ECR_REGISTRY/wordpress-nginx:latest"
+          docker push "$ECR_REGISTRY/wordpress-nginx:latest"
