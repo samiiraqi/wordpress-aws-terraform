@@ -54,6 +54,33 @@ data "aws_iam_policy_document" "github_actions" {
       "arn:aws:s3:::demo-infra-bucket-156041402173/*"
     ]
   }
+
+  statement {
+    sid    = "ECRAccess"
+    effect = "Allow"
+    actions = [
+      "ecr:GetAuthorizationToken"
+    ]
+    resources = ["*"]
+  }
+
+  statement {
+    sid    = "ECRRepositoryAccess"
+    effect = "Allow"
+    actions = [
+      "ecr:BatchCheckLayerAvailability",
+      "ecr:GetDownloadUrlForLayer",
+      "ecr:BatchGetImage",
+      "ecr:InitiateLayerUpload",
+      "ecr:UploadLayerPart",
+      "ecr:CompleteLayerUpload",
+      "ecr:PutImage"
+    ]
+    resources = [
+      "arn:aws:ecr:us-east-1:156041402173:repository/wordpress-php-fpm",
+      "arn:aws:ecr:us-east-1:156041402173:repository/wordpress-nginx"
+    ]
+  }
 }
 
 resource "aws_iam_policy" "github_actions" {
