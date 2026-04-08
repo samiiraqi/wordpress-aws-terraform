@@ -17,7 +17,7 @@ variable "tags" {
     Environment = "demo"
     Project     = "demo-infra"
     ManagedBy   = "terraform"
-    CostCenter  = "devops"
+    CostCenter  = "engineering"
     Owner       = "samiiraqi"
   }
 }
