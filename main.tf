@@ -27,13 +27,13 @@ module "billing" {
 }
 
 module "networking" {
-  source  = "terraform-aws-modules/vpc/aws"
-  version = "5.1.2"
-  name = "${var.project_name}-vpc"
-  cidr = "10.0.0.0/16"
-  azs             = ["us-east-1a", "us-east-1b"]
-  public_subnets  = ["10.0.1.0/24", "10.0.2.0/24"]
-  private_subnets = ["10.0.21.0/24", "10.0.22.0/24"]
+  source               = "terraform-aws-modules/vpc/aws"
+  version              = "5.1.2"
+  name                 = "${var.project_name}-vpc"
+  cidr                 = "10.0.0.0/16"
+  azs                  = ["us-east-1a", "us-east-1b"]
+  public_subnets       = ["10.0.1.0/24", "10.0.2.0/24"]
+  private_subnets      = ["10.0.21.0/24", "10.0.22.0/24"]
   enable_dns_hostnames = true
   enable_dns_support   = true
   enable_nat_gateway   = false
@@ -49,22 +49,22 @@ module "security" {
 }
 
 module "database" {
-  source                     = "./modules/database"
-  project_name               = var.project_name
-  private_subnet_ids         = module.networking.private_subnets
-  rds_sg_id                  = module.security.rds_sg_id
+  source             = "./modules/database"
+  project_name       = var.project_name
+  private_subnet_ids = module.networking.private_subnets
+  rds_sg_id          = module.security.rds_sg_id
 }
 
 module "compute" {
-  source                    = "./modules/compute"
-  project_name              = var.project_name
-  vpc_id                    = module.networking.vpc_id
-  public_subnet_ids         = module.networking.public_subnets
-  ecs_sg_id                 = module.security.ecs_sg_id
-  alb_sg_id                 = module.security.alb_sg_id
-  db_endpoint               = module.database.db_endpoint
-  db_name                   = module.database.db_name
-  db_username               = module.database.db_username
-  db_secret_arn             = module.database.db_secret_arn
-  sns_topic_arn             = module.billing.sns_topic_arn
+  source            = "./modules/compute"
+  project_name      = var.project_name
+  vpc_id            = module.networking.vpc_id
+  public_subnet_ids = module.networking.public_subnets
+  ecs_sg_id         = module.security.ecs_sg_id
+  alb_sg_id         = module.security.alb_sg_id
+  db_endpoint       = module.database.db_endpoint
+  db_name           = module.database.db_name
+  db_username       = module.database.db_username
+  db_secret_arn     = module.database.db_secret_arn
+  sns_topic_arn     = module.billing.sns_topic_arn
 }
