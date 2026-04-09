@@ -44,6 +44,39 @@ data "aws_iam_policy_document" "github_actions" {
   }
 
   statement {
+    sid    = "KMSAccess"
+    effect = "Allow"
+    actions = [
+      "kms:Decrypt",
+      "kms:GenerateDataKey",
+      "kms:DescribeKey"
+    ]
+    resources = [
+      "arn:aws:kms:us-east-1:156041402173:key/70f62206-c0c0-49d2-8e96-80965542e33f"
+    ]
+  }
+
+  statement {
+    sid    = "IAMAccess"
+    effect = "Allow"
+    actions = [
+      "iam:GetPolicy",
+      "iam:GetPolicyVersion",
+      "iam:GetRole",
+      "iam:GetOpenIDConnectProvider",
+      "iam:ListRolePolicies",
+      "iam:ListAttachedRolePolicies",
+      "iam:CreatePolicy",
+      "iam:CreatePolicyVersion",
+      "iam:DeletePolicyVersion",
+      "iam:UpdateAssumeRolePolicy",
+      "iam:AttachRolePolicy",
+      "iam:DetachRolePolicy"
+    ]
+    resources = ["*"]
+  }
+
+  statement {
     sid    = "S3DemoAccess"
     effect = "Allow"
     actions = [
