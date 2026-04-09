@@ -36,9 +36,9 @@ jobs:
 
       - name: Terraform Plan
         env:
-          TF_VAR_project_name: ${{ secrets.TF_VAR_project_name }}
-          TF_VAR_alert_email: ${{ secrets.TF_VAR_alert_email }}
-          TF_VAR_aws_region: ${{ secrets.TF_VAR_aws_region }}
+          TF_VAR_project_name: ${{ secrets.TF_VAR_PROJECT_NAME }}
+          TF_VAR_alert_email: ${{ secrets.TF_VAR_ALERT_EMAIL }}
+          TF_VAR_aws_region: ${{ secrets.TF_VAR_AWS_REGION }}
         run: terraform plan -out=plan.tfplan
 
       - name: Terraform Apply
