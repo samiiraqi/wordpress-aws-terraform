@@ -11,9 +11,4 @@ variable "project_name" {
 variable "alert_email" {
   type = string
 }
-# Test variable
-variable "environment" {
-  description = "Environment name"
-  type        = string
-  default     = "production"
-}
+
