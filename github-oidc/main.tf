@@ -57,6 +57,26 @@ data "aws_iam_policy_document" "github_actions" {
   }
 
   statement {
+    sid    = "IAMAccess"
+    effect = "Allow"
+    actions = [
+      "iam:GetPolicy",
+      "iam:GetPolicyVersion",
+      "iam:GetRole",
+      "iam:GetOpenIDConnectProvider",
+      "iam:ListRolePolicies",
+      "iam:ListAttachedRolePolicies",
+      "iam:CreatePolicy",
+      "iam:CreatePolicyVersion",
+      "iam:DeletePolicyVersion",
+      "iam:UpdateAssumeRolePolicy",
+      "iam:AttachRolePolicy",
+      "iam:DetachRolePolicy"
+    ]
+    resources = ["*"]
+  }
+
+  statement {
     sid    = "S3DemoAccess"
     effect = "Allow"
     actions = [
