@@ -44,17 +44,17 @@ data "aws_iam_policy_document" "github_actions" {
   }
 
   statement {
-  sid    = "KMSAccess"
-  effect = "Allow"
-  actions = [
-    "kms:Decrypt",
-    "kms:GenerateDataKey",
-    "kms:DescribeKey"
-  ]
-  resources = [
-    "arn:aws:kms:us-east-1:156041402173:key/70f62206-c0c0-49d2-8e96-80965542e33f"
-  ]
-}
+    sid    = "KMSAccess"
+    effect = "Allow"
+    actions = [
+      "kms:Decrypt",
+      "kms:GenerateDataKey",
+      "kms:DescribeKey"
+    ]
+    resources = [
+      "arn:aws:kms:us-east-1:156041402173:key/70f62206-c0c0-49d2-8e96-80965542e33f"
+    ]
+  }
 
   statement {
     sid    = "S3DemoAccess"
