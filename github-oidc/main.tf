@@ -77,6 +77,19 @@ data "aws_iam_policy_document" "github_actions" {
   }
 
   statement {
+    sid    = "DynamoDBMainAccess"
+    effect = "Allow"
+    actions = [
+      "dynamodb:GetItem",
+      "dynamodb:PutItem",
+      "dynamodb:DeleteItem"
+    ]
+    resources = [
+      "arn:aws:dynamodb:us-east-1:156041402173:table/wordpress-terraform-lock"
+    ]
+  }
+
+  statement {
     sid    = "S3DemoAccess"
     effect = "Allow"
     actions = [
