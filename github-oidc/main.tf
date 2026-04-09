@@ -75,6 +75,15 @@ data "aws_iam_policy_document" "github_actions" {
     ]
     resources = ["*"]
   }
+  statement {
+    sid    = "SSMAccess"
+    effect = "Allow"
+    actions = [
+      "ssm:GetParameter",
+      "ssm:GetParameters"
+    ]
+    resources = ["*"]
+  }
 
   statement {
     sid    = "DynamoDBMainAccess"
