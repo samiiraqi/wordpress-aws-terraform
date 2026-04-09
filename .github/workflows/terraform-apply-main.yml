@@ -1,0 +1,89 @@
+name: Terraform Apply - Main Infrastructure
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '*.tf'
+      - 'modules/**'
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  terraform-apply:
+    name: Terraform Apply - Main
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@de0fac2d22a9f5514082069e8b1e1f02b02e4cf5 # v6.0.2
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@5e8dbf3ac33b2b3cc30f025e3e12d76ca78ddfdc # v4.0.0
+
+      - name: Configure AWS credentials
+        uses:  aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
+        with:
+          role-to-assume: arn:aws:iam::156041402173:role/github-actions-oidc-role
+          aws-region: us-east-1
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Plan
+        env:
+          TF_VAR_project_name: ${{ secrets.TF_VAR_project_name }}
+          TF_VAR_alert_email: ${{ secrets.TF_VAR_alert_email }}
+          TF_VAR_aws_region: ${{ secrets.TF_VAR_aws_region }}
+        run: terraform plan -out=plan.tfplan
+
+      - name: Terraform Apply
+        env:
+          TF_VAR_project_name: ${{ secrets.TF_VAR_project_name }}
+          TF_VAR_alert_email: ${{ secrets.TF_VAR_alert_email }}
+          TF_VAR_aws_region: ${{ secrets.TF_VAR_aws_region }}
+        run: terraform apply plan.tfplan
+
+      - name: Login to ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
+
+      - name: Build WordPress image
+        run: docker build -t wordpress-php-fpm:latest docker/
+
+      - name: Build nginx image
+        run: docker build -t wordpress-nginx:latest docker/nginx/
+
+      - name: Run Trivy on WordPress image
+        uses: aquasecurity/trivy-action@6e7b7d1fd3e4fef0c5fa8cce1229c54b2c9bd0d8 # v0.24.0
+        with:
+          image-ref: wordpress-php-fpm:latest
+          format: table
+          exit-code: '0'
+          severity: CRITICAL,HIGH
+
+      - name: Run Trivy on nginx image
+        uses: aquasecurity/trivy-action@6e7b7d1fd3e4fef0c5fa8cce1229c54b2c9bd0d8 # v0.24.0
+        with:
+          image-ref: wordpress-nginx:latest
+          format: table
+          exit-code: '0'
+          severity: CRITICAL,HIGH
+
+      - name: Push WordPress image to ECR
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        run: |
+          docker tag wordpress-php-fpm:latest "$ECR_REGISTRY/wordpress-php-fpm:latest"
+          docker push "$ECR_REGISTRY/wordpress-php-fpm:latest"
+
+      - name: Push nginx image to ECR
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        run: |
+          docker tag wordpress-nginx:latest "$ECR_REGISTRY/wordpress-nginx:latest"
+          docker push "$ECR_REGISTRY/wordpress-nginx:latest"
