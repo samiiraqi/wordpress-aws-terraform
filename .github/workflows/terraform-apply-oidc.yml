@@ -7,6 +7,10 @@ on:
     paths:
       - 'github-oidc/**'
 
+concurrency:
+  group: terraform-apply-oidc-${{ github.ref }}
+  cancel-in-progress: false
+
 permissions:
   id-token: write
   contents: read
@@ -16,6 +20,7 @@ jobs:
     name: Terraform Apply - OIDC
     runs-on: ubuntu-latest
     environment: production
+    timeout-minutes: 30
     defaults:
       run:
         working-directory: github-oidc
@@ -26,6 +31,9 @@ jobs:
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@5e8dbf3c6d9deaf4193ca7a8fb23f2ac83bb6c85 # v4.0.0
+        with:
+          terraform_version: '1.10.2'
+          terraform_wrapper: false
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@ec61189d14ec14c8efccab744f656cffd0e33f37 # v6.1.0
@@ -37,7 +45,7 @@ jobs:
         run: terraform init
 
       - name: Terraform Plan
-        run: terraform plan
+        run: terraform plan -out=plan.tfplan -input=false
 
       - name: Terraform Apply
-        run: terraform apply -auto-approve
+        run: terraform apply -input=false plan.tfplan

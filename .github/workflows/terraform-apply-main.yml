@@ -6,7 +6,13 @@ on:
       - main
     paths:
       - '*.tf'
+      - '*.tfvars'
+      - '*.auto.tfvars'
       - 'modules/**'
+
+concurrency:
+  group: terraform-apply-main-${{ github.ref }}
+  cancel-in-progress: false
 
 permissions:
   id-token: write
@@ -17,6 +23,9 @@ jobs:
     name: Terraform Apply - Main
     runs-on: ubuntu-latest
     environment: production
+    timeout-minutes: 60
+    outputs:
+      alb_dns: ${{ steps.get-alb.outputs.alb_dns }}
 
     steps:
       - name: Checkout code
@@ -24,9 +33,12 @@ jobs:
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@5e8dbf3c6d9deaf4193ca7a8fb23f2ac83bb6c85 # v4.0.0
+        with:
+          terraform_version: '1.10.2'
+          terraform_wrapper: false
 
       - name: Configure AWS credentials
-        uses:  aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
+        uses: aws-actions/configure-aws-credentials@ec61189d14ec14c8efccab744f656cffd0e33f37 # v6.1.0
         with:
           role-to-assume: arn:aws:iam::156041402173:role/github-actions-oidc-role
           aws-region: us-east-1
@@ -39,54 +51,14 @@ jobs:
           TF_VAR_project_name: ${{ secrets.TF_VAR_PROJECT_NAME }}
           TF_VAR_alert_email: ${{ secrets.TF_VAR_ALERT_EMAIL }}
           TF_VAR_aws_region: ${{ secrets.TF_VAR_AWS_REGION }}
-        run: terraform plan -out=plan.tfplan
+        run: terraform plan -out=plan.tfplan -input=false
 
       - name: Terraform Apply
         env:
-          TF_VAR_project_name: ${{ secrets.TF_VAR_project_name }}
-          TF_VAR_alert_email: ${{ secrets.TF_VAR_alert_email }}
-          TF_VAR_aws_region: ${{ secrets.TF_VAR_aws_region }}
-        run: terraform apply plan.tfplan
-
-      - name: Login to ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
-
-      - name: Build WordPress image
-        run: docker build -t wordpress-php-fpm:latest docker/
-
-      - name: Build nginx image
-        run: docker build -t wordpress-nginx:latest docker/nginx/
-
-      - name: Run Trivy on WordPress image
-        uses: aquasecurity/trivy-action@6e7b7d1fd3e4fef0c5fa8cce1229c54b2c9bd0d8 # v0.24.0
-        with:
-          image-ref: wordpress-php-fpm:latest
-          format: table
-          exit-code: '0'
-          severity: CRITICAL,HIGH
-
-      - name: Run Trivy on nginx image
-        uses: aquasecurity/trivy-action@6e7b7d1fd3e4fef0c5fa8cce1229c54b2c9bd0d8 # v0.24.0
-        with:
-          image-ref: wordpress-nginx:latest
-          format: table
-          exit-code: '0'
-          severity: CRITICAL,HIGH
-
-      - name: Push WordPress image to ECR
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        run: |
-          docker tag wordpress-php-fpm:latest "$ECR_REGISTRY/wordpress-php-fpm:latest"
-          docker push "$ECR_REGISTRY/wordpress-php-fpm:latest"
-
-      - name: Push nginx image to ECR
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        run: |
-          docker tag wordpress-nginx:latest "$ECR_REGISTRY/wordpress-nginx:latest"
-          docker push "$ECR_REGISTRY/wordpress-nginx:latest"
+          TF_VAR_project_name: ${{ secrets.TF_VAR_PROJECT_NAME }}
+          TF_VAR_alert_email: ${{ secrets.TF_VAR_ALERT_EMAIL }}
+          TF_VAR_aws_region: ${{ secrets.TF_VAR_AWS_REGION }}
+        run: terraform apply -input=false plan.tfplan
 
       - name: Get ALB DNS Name
         id: get-alb
@@ -94,10 +66,47 @@ jobs:
           alb_dns=$(terraform output -raw alb_dns_name)
           echo "alb_dns=$alb_dns" >> "$GITHUB_OUTPUT"
 
+  docker-images:
+    name: Docker images
+    needs: terraform-apply
+    uses: ./.github/workflows/docker-build-reusable.yml
+    with:
+      push: true
+      image_tag: ${{ github.sha }}
+    secrets: inherit
+
+  dast:
+    name: DAST (OWASP ZAP)
+    needs:
+      - terraform-apply
+      - docker-images
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Wait for load balancer
+        env:
+          ALB: ${{ needs.terraform-apply.outputs.alb_dns }}
+        run: |
+          set -euo pipefail
+          for i in $(seq 1 60); do
+            if curl -fsS --max-time 15 "http://${ALB}/" >/dev/null 2>&1; then
+              echo "ALB responded"
+              exit 0
+            fi
+            echo "Waiting for ALB (${i}/60)..."
+            sleep 10
+          done
+          echo "ALB did not become reachable in time"
+          exit 1
+
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
       - name: DAST Scan with OWASP ZAP
-        uses: zaproxy/action-baseline@v0.14.0
+        uses: zaproxy/action-baseline@7c4deb10e6261301961c86d65d54a516394f9aed # v0.14.0
         with:
-          target: 'http://${{ steps.get-alb.outputs.alb_dns }}'
+          target: 'http://${{ needs.terraform-apply.outputs.alb_dns }}'
           rules_file_name: '.zap/rules.tsv'
           cmd_options: '-a'
-          fail_action: false
+          fail_action: true

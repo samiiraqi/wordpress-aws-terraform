@@ -1,0 +1,84 @@
+name: Docker Build (Reusable)
+
+on:
+  workflow_call:
+    inputs:
+      push:
+        description: Authenticate to AWS, log in to ECR, and push images
+        type: boolean
+        required: false
+        default: false
+      image_tag:
+        description: Immutable image tag (for example git commit SHA)
+        type: string
+        required: true
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  docker:
+    name: Build${{ inputs.push && ' and push' || '' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Configure AWS credentials
+        if: inputs.push
+        uses: aws-actions/configure-aws-credentials@ec61189d14ec14c8efccab744f656cffd0e33f37 # v6.1.0
+        with:
+          role-to-assume: arn:aws:iam::156041402173:role/github-actions-oidc-role
+          aws-region: us-east-1
+
+      - name: Login to ECR
+        id: login-ecr
+        if: inputs.push
+        uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
+
+      - name: Build WordPress image
+        run: docker build -t wordpress-php-fpm:latest docker/
+
+      - name: Build nginx image
+        run: docker build -t wordpress-nginx:latest docker/nginx/
+
+      - name: Run Trivy on WordPress image
+        uses: aquasecurity/trivy-action@6e7b7d1fd3e4fef0c5fa8cce1229c54b2c9bd0d8 # v0.24.0
+        with:
+          image-ref: wordpress-php-fpm:latest
+          format: table
+          exit-code: '1'
+          severity: CRITICAL,HIGH
+
+      - name: Run Trivy on nginx image
+        uses: aquasecurity/trivy-action@6e7b7d1fd3e4fef0c5fa8cce1229c54b2c9bd0d8 # v0.24.0
+        with:
+          image-ref: wordpress-nginx:latest
+          format: table
+          exit-code: '1'
+          severity: CRITICAL,HIGH
+
+      - name: Push WordPress image to ECR
+        if: inputs.push
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          TAG: ${{ inputs.image_tag }}
+        run: |
+          docker tag wordpress-php-fpm:latest "$ECR_REGISTRY/wordpress-php-fpm:latest"
+          docker tag wordpress-php-fpm:latest "$ECR_REGISTRY/wordpress-php-fpm:$TAG"
+          docker push "$ECR_REGISTRY/wordpress-php-fpm:latest"
+          docker push "$ECR_REGISTRY/wordpress-php-fpm:$TAG"
+
+      - name: Push nginx image to ECR
+        if: inputs.push
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          TAG: ${{ inputs.image_tag }}
+        run: |
+          docker tag wordpress-nginx:latest "$ECR_REGISTRY/wordpress-nginx:latest"
+          docker tag wordpress-nginx:latest "$ECR_REGISTRY/wordpress-nginx:$TAG"
+          docker push "$ECR_REGISTRY/wordpress-nginx:latest"
+          docker push "$ECR_REGISTRY/wordpress-nginx:$TAG"
