@@ -1,4 +1,5 @@
 terraform {
+  required_version = ">= 1.0"
   backend "s3" {
     bucket         = "wordpress-terraform-state-156041402173"
     key            = "wordpress/terraform.tfstate"
