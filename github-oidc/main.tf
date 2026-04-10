@@ -86,6 +86,25 @@ data "aws_iam_policy_document" "github_actions" {
   }
 
   statement {
+    sid    = "MainInfraAccess"
+    effect = "Allow"
+    actions = [
+      "sns:*",
+      "ecr:*",
+      "iam:*",
+      "logs:*",
+      "secretsmanager:*",
+      "ec2:*",
+      "ecs:*",
+      "elasticloadbalancing:*",
+      "autoscaling:*",
+      "rds:*",
+      "cloudwatch:*"
+    ]
+    resources = ["*"]
+  }
+
+  statement {
     sid    = "DynamoDBMainAccess"
     effect = "Allow"
     actions = [
