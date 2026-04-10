@@ -92,7 +92,7 @@ jobs:
         id: get-alb
         run: |
           alb_dns=$(terraform output -raw alb_dns_name)
-          echo "alb_dns=$alb_dns" >> $GITHUB_OUTPUT
+          echo "alb_dns=$alb_dns" >> "$GITHUB_OUTPUT"
 
       - name: DAST Scan with OWASP ZAP
         uses: zaproxy/action-baseline@v0.14.0
