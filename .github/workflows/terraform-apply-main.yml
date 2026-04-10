@@ -87,7 +87,8 @@ jobs:
         run: |
           docker tag wordpress-nginx:latest "$ECR_REGISTRY/wordpress-nginx:latest"
           docker push "$ECR_REGISTRY/wordpress-nginx:latest"
-          - name: Get ALB DNS Name
+
+      - name: Get ALB DNS Name
         id: get-alb
         run: |
           alb_dns=$(terraform output -raw alb_dns_name)
