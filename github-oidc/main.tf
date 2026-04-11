@@ -17,7 +17,7 @@ module "iam_github_oidc_provider" {
   version = "~> 5.0"
 }
 
-data "aws_iam_policy_document" "github_actions" {
+data "aws_iam_policy_document" "github_actions_state" {
   statement {
     sid    = "S3StateAccess"
     effect = "Allow"
@@ -85,8 +85,59 @@ data "aws_iam_policy_document" "github_actions" {
     resources = ["*"]
   }
 
-  # WordPress root module: VPC, security groups, ALB, ASG/launch templates, ECS, ECR repos,
-  # RDS, Secrets Manager (DB creds), CloudWatch Logs, billing SNS/alarms — explicit actions only.
+  statement {
+    sid    = "DynamoDBMainAccess"
+    effect = "Allow"
+    actions = [
+      "dynamodb:GetItem",
+      "dynamodb:PutItem",
+      "dynamodb:DeleteItem"
+    ]
+    resources = [
+      "arn:aws:dynamodb:us-east-1:156041402173:table/wordpress-terraform-lock"
+    ]
+  }
+
+  statement {
+    sid    = "S3DemoAccess"
+    effect = "Allow"
+    actions = [
+      "s3:*"
+    ]
+    resources = [
+      "arn:aws:s3:::demo-infra-bucket-156041402173",
+      "arn:aws:s3:::demo-infra-bucket-156041402173/*"
+    ]
+  }
+
+  statement {
+    sid    = "ECRAccess"
+    effect = "Allow"
+    actions = [
+      "ecr:GetAuthorizationToken"
+    ]
+    resources = ["*"]
+  }
+
+  statement {
+    sid    = "ECRRepositoryAccess"
+    effect = "Allow"
+    actions = [
+      "ecr:BatchCheckLayerAvailability",
+      "ecr:GetDownloadUrlForLayer",
+      "ecr:BatchGetImage",
+      "ecr:InitiateLayerUpload",
+      "ecr:UploadLayerPart",
+      "ecr:CompleteLayerUpload",
+      "ecr:PutImage"
+    ]
+    resources = [
+      "arn:aws:ecr:us-east-1:156041402173:repository/wordpress-php-fpm",
+      "arn:aws:ecr:us-east-1:156041402173:repository/wordpress-nginx"
+    ]
+  }
+
+  # MainInfra EC2 + ELB live on the state policy to keep the infra policy under 6144 chars.
   statement {
     sid    = "MainInfraEC2"
     effect = "Allow"
@@ -180,7 +231,10 @@ data "aws_iam_policy_document" "github_actions" {
     ]
     resources = ["*"]
   }
+}
 
+# Remaining MainInfra permissions (split so each managed policy JSON stays under 6144 chars).
+data "aws_iam_policy_document" "github_actions_infra" {
   statement {
     sid    = "MainInfraAutoScaling"
     effect = "Allow"
@@ -450,64 +504,18 @@ data "aws_iam_policy_document" "github_actions" {
     ]
     resources = ["arn:aws:iam::156041402173:role/aws-service-role/*"]
   }
-
-  statement {
-    sid    = "DynamoDBMainAccess"
-    effect = "Allow"
-    actions = [
-      "dynamodb:GetItem",
-      "dynamodb:PutItem",
-      "dynamodb:DeleteItem"
-    ]
-    resources = [
-      "arn:aws:dynamodb:us-east-1:156041402173:table/wordpress-terraform-lock"
-    ]
-  }
-
-  statement {
-    sid    = "S3DemoAccess"
-    effect = "Allow"
-    actions = [
-      "s3:*"
-    ]
-    resources = [
-      "arn:aws:s3:::demo-infra-bucket-156041402173",
-      "arn:aws:s3:::demo-infra-bucket-156041402173/*"
-    ]
-  }
-
-  statement {
-    sid    = "ECRAccess"
-    effect = "Allow"
-    actions = [
-      "ecr:GetAuthorizationToken"
-    ]
-    resources = ["*"]
-  }
-
-  statement {
-    sid    = "ECRRepositoryAccess"
-    effect = "Allow"
-    actions = [
-      "ecr:BatchCheckLayerAvailability",
-      "ecr:GetDownloadUrlForLayer",
-      "ecr:BatchGetImage",
-      "ecr:InitiateLayerUpload",
-      "ecr:UploadLayerPart",
-      "ecr:CompleteLayerUpload",
-      "ecr:PutImage"
-    ]
-    resources = [
-      "arn:aws:ecr:us-east-1:156041402173:repository/wordpress-php-fpm",
-      "arn:aws:ecr:us-east-1:156041402173:repository/wordpress-nginx"
-    ]
-  }
 }
 
-resource "aws_iam_policy" "github_actions" {
-  name        = "github-actions-terraform-policy"
-  description = "Minimal permissions for GitHub Actions Terraform"
-  policy      = data.aws_iam_policy_document.github_actions.json
+resource "aws_iam_policy" "github_actions_state" {
+  name        = "github-actions-terraform-state-policy"
+  description = "GitHub Actions: state backend, KMS, OIDC IAM, SSM, ECR push, plus EC2/VPC and ELB for main infra"
+  policy      = data.aws_iam_policy_document.github_actions_state.json
+}
+
+resource "aws_iam_policy" "github_actions_infra" {
+  name        = "github-actions-terraform-infra-policy"
+  description = "GitHub Actions: WordPress infrastructure (EC2, ELB, ECS, RDS, etc.)"
+  policy      = data.aws_iam_policy_document.github_actions_infra.json
 }
 
 module "iam_github_oidc_role" {
@@ -521,6 +529,7 @@ module "iam_github_oidc_role" {
   ]
 
   policies = {
-    GitHubActionsPolicy = aws_iam_policy.github_actions.arn
+    GitHubActionsStatePolicy = aws_iam_policy.github_actions_state.arn
+    GitHubActionsInfraPolicy = aws_iam_policy.github_actions_infra.arn
   }
 }
