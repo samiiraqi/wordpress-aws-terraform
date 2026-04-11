@@ -13,28 +13,7 @@ resource "aws_ecr_repository" "wordpress" {
     Name = "${var.project_name}-php-fpm"
   }
 }
-# Build and push Docker image to ECR automatically
-resource "null_resource" "docker_build_push" {
-  triggers = {
-    dockerfile = filemd5("${path.module}/../../docker/Dockerfile")
-  }
 
-  provisioner "local-exec" {
-    command = <<-EOF
-      aws ecr get-login-password --region us-east-1 | \
-        docker login --username AWS --password-stdin \
-        ${aws_ecr_repository.wordpress.repository_url}
-      
-      docker buildx build \
-        --platform linux/amd64 \
-        --push \
-        -t ${aws_ecr_repository.wordpress.repository_url}:latest \
-        ${path.module}/../../docker/
-    EOF
-  }
-
-  depends_on = [aws_ecr_repository.wordpress]
-}
 # ECR Repository for custom nginx image
 resource "aws_ecr_repository" "nginx" {
   name                 = "${var.project_name}-nginx"
@@ -46,27 +25,6 @@ resource "aws_ecr_repository" "nginx" {
   tags = {
     Name = "${var.project_name}-nginx"
   }
-}
-
-# Build and push nginx Docker image to ECR
-resource "null_resource" "docker_build_push_nginx" {
-  triggers = {
-    dockerfile = filemd5("${path.module}/../../docker/nginx/Dockerfile")
-  }
-  provisioner "local-exec" {
-    command = <<-EOF
-      aws ecr get-login-password --region us-east-1 | \
-        docker login --username AWS --password-stdin \
-        ${aws_ecr_repository.nginx.repository_url}
-      
-      docker buildx build \
-        --platform linux/amd64 \
-        --push \
-        -t ${aws_ecr_repository.nginx.repository_url}:latest \
-        ${path.module}/../../docker/nginx/
-    EOF
-  }
-  depends_on = [aws_ecr_repository.nginx]
 }
 
 module "ecs_cluster" {
@@ -357,12 +315,11 @@ resource "aws_ecs_service" "wordpress" {
     container_name   = "nginx"
     container_port   = 80
   }
-depends_on = [
-  module.alb,
-  aws_iam_role_policy_attachment.ecs_task_execution_role,
-  null_resource.docker_build_push,
-  null_resource.docker_build_push_nginx
-]
+
+  depends_on = [
+    module.alb,
+    aws_iam_role_policy_attachment.ecs_task_execution_role,
+  ]
 }
 
 
