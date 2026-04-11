@@ -39,7 +39,7 @@ data "aws_iam_policy_document" "github_actions" {
       "dynamodb:DeleteItem"
     ]
     resources = [
-      "arn:aws:dynamodb:us-east-1:156041402173:table/wordpress-terraform-locks"
+      "arn:aws:dynamodb:us-east-1:156041402173:table/wordpress-terraform-lock"
     ]
   }
 
