@@ -3,7 +3,7 @@ terraform {
     bucket         = "wordpress-terraform-state-156041402173"
     key            = "github-oidc/terraform.tfstate"
     region         = "us-east-1"
-    dynamodb_table = "wordpress-terraform-locks"
+    dynamodb_table = "wordpress-terraform-lock"
     encrypt        = true
   }
 }

@@ -85,23 +85,370 @@ data "aws_iam_policy_document" "github_actions" {
     resources = ["*"]
   }
 
+  # WordPress root module: VPC, security groups, ALB, ASG/launch templates, ECS, ECR repos,
+  # RDS, Secrets Manager (DB creds), CloudWatch Logs, billing SNS/alarms — explicit actions only.
   statement {
-    sid    = "MainInfraAccess"
+    sid    = "MainInfraEC2"
     effect = "Allow"
     actions = [
-      "sns:*",
-      "ecr:*",
-      "iam:*",
-      "logs:*",
-      "secretsmanager:*",
-      "ec2:*",
-      "ecs:*",
-      "elasticloadbalancing:*",
-      "autoscaling:*",
-      "rds:*",
-      "cloudwatch:*"
+      "ec2:AssociateRouteTable",
+      "ec2:AttachInternetGateway",
+      "ec2:AuthorizeSecurityGroupEgress",
+      "ec2:AuthorizeSecurityGroupIngress",
+      "ec2:CreateInternetGateway",
+      "ec2:CreateLaunchTemplate",
+      "ec2:CreateLaunchTemplateVersion",
+      "ec2:CreateRoute",
+      "ec2:CreateRouteTable",
+      "ec2:CreateSecurityGroup",
+      "ec2:CreateSubnet",
+      "ec2:CreateTags",
+      "ec2:CreateVpc",
+      "ec2:DeleteInternetGateway",
+      "ec2:DeleteLaunchTemplate",
+      "ec2:DeleteLaunchTemplateVersion",
+      "ec2:DeleteRoute",
+      "ec2:DeleteRouteTable",
+      "ec2:DeleteSecurityGroup",
+      "ec2:DeleteSubnet",
+      "ec2:DeleteTags",
+      "ec2:DeleteVpc",
+      "ec2:DescribeAccountAttributes",
+      "ec2:DescribeAddresses",
+      "ec2:DescribeAvailabilityZones",
+      "ec2:DescribeImages",
+      "ec2:DescribeInstanceAttribute",
+      "ec2:DescribeInstanceCreditSpecifications",
+      "ec2:DescribeInstances",
+      "ec2:DescribeInternetGateways",
+      "ec2:DescribeLaunchTemplateVersions",
+      "ec2:DescribeLaunchTemplates",
+      "ec2:DescribeNetworkInterfaces",
+      "ec2:DescribeRouteTables",
+      "ec2:DescribeSecurityGroupRules",
+      "ec2:DescribeSecurityGroups",
+      "ec2:DescribeSubnets",
+      "ec2:DescribeTags",
+      "ec2:DescribeVolumes",
+      "ec2:DescribeVpcAttribute",
+      "ec2:DescribeVpcs",
+      "ec2:DetachInternetGateway",
+      "ec2:DisassociateRouteTable",
+      "ec2:GetLaunchTemplateData",
+      "ec2:ModifyLaunchTemplate",
+      "ec2:ModifySubnetAttribute",
+      "ec2:ModifyVpcAttribute",
+      "ec2:ReplaceRoute",
+      "ec2:RevokeSecurityGroupEgress",
+      "ec2:RevokeSecurityGroupIngress",
     ]
     resources = ["*"]
+  }
+
+  statement {
+    sid    = "MainInfraELB"
+    effect = "Allow"
+    actions = [
+      "elasticloadbalancing:AddListenerCertificates",
+      "elasticloadbalancing:AddTags",
+      "elasticloadbalancing:CreateListener",
+      "elasticloadbalancing:CreateLoadBalancer",
+      "elasticloadbalancing:CreateTargetGroup",
+      "elasticloadbalancing:DeleteListener",
+      "elasticloadbalancing:DeleteLoadBalancer",
+      "elasticloadbalancing:DeleteTargetGroup",
+      "elasticloadbalancing:DeregisterTargets",
+      "elasticloadbalancing:DescribeListeners",
+      "elasticloadbalancing:DescribeLoadBalancerAttributes",
+      "elasticloadbalancing:DescribeLoadBalancers",
+      "elasticloadbalancing:DescribeRules",
+      "elasticloadbalancing:DescribeSSLPolicies",
+      "elasticloadbalancing:DescribeTags",
+      "elasticloadbalancing:DescribeTargetGroupAttributes",
+      "elasticloadbalancing:DescribeTargetGroups",
+      "elasticloadbalancing:DescribeTargetHealth",
+      "elasticloadbalancing:ModifyListener",
+      "elasticloadbalancing:ModifyLoadBalancerAttributes",
+      "elasticloadbalancing:ModifyRule",
+      "elasticloadbalancing:ModifyTargetGroup",
+      "elasticloadbalancing:ModifyTargetGroupAttributes",
+      "elasticloadbalancing:RegisterTargets",
+      "elasticloadbalancing:RemoveListenerCertificates",
+      "elasticloadbalancing:RemoveTags",
+      "elasticloadbalancing:SetSecurityGroups",
+      "elasticloadbalancing:SetSubnets",
+    ]
+    resources = ["*"]
+  }
+
+  statement {
+    sid    = "MainInfraAutoScaling"
+    effect = "Allow"
+    actions = [
+      "autoscaling:AttachLoadBalancerTargetGroups",
+      "autoscaling:CreateAutoScalingGroup",
+      "autoscaling:CreateLaunchConfiguration",
+      "autoscaling:CreateOrUpdateTags",
+      "autoscaling:DeleteAutoScalingGroup",
+      "autoscaling:DeleteLaunchConfiguration",
+      "autoscaling:DeleteLifecycleHook",
+      "autoscaling:DeletePolicy",
+      "autoscaling:DeleteScheduledAction",
+      "autoscaling:DeleteTags",
+      "autoscaling:DescribeAutoScalingGroups",
+      "autoscaling:DescribeAutoScalingInstances",
+      "autoscaling:DescribeLaunchConfigurations",
+      "autoscaling:DescribeLoadBalancerTargetGroups",
+      "autoscaling:DescribeLoadBalancers",
+      "autoscaling:DescribePolicies",
+      "autoscaling:DescribeScalingActivities",
+      "autoscaling:DescribeScheduledActions",
+      "autoscaling:DescribeTags",
+      "autoscaling:DetachLoadBalancerTargetGroups",
+      "autoscaling:DisableMetricsCollection",
+      "autoscaling:EnableMetricsCollection",
+      "autoscaling:PutScalingPolicy",
+      "autoscaling:PutScheduledUpdateGroupAction",
+      "autoscaling:ResumeProcesses",
+      "autoscaling:SetDesiredCapacity",
+      "autoscaling:SuspendProcesses",
+      "autoscaling:TerminateInstanceInAutoScalingGroup",
+      "autoscaling:UpdateAutoScalingGroup",
+    ]
+    resources = ["*"]
+  }
+
+  statement {
+    sid    = "MainInfraECS"
+    effect = "Allow"
+    actions = [
+      "ecs:CreateCapacityProvider",
+      "ecs:CreateCluster",
+      "ecs:CreateService",
+      "ecs:DeleteCapacityProvider",
+      "ecs:DeleteCluster",
+      "ecs:DeleteService",
+      "ecs:DeregisterTaskDefinition",
+      "ecs:DescribeCapacityProviders",
+      "ecs:DescribeClusters",
+      "ecs:DescribeServices",
+      "ecs:DescribeTaskDefinition",
+      "ecs:DescribeTasks",
+      "ecs:ListTagsForResource",
+      "ecs:ListTaskDefinitions",
+      "ecs:PutClusterCapacityProviders",
+      "ecs:RegisterTaskDefinition",
+      "ecs:TagResource",
+      "ecs:UntagResource",
+      "ecs:UpdateCapacityProvider",
+      "ecs:UpdateCluster",
+      "ecs:UpdateService",
+    ]
+    resources = ["*"]
+  }
+
+  statement {
+    sid    = "MainInfraECRManagement"
+    effect = "Allow"
+    actions = [
+      "ecr:BatchGetRepositoryScanningConfiguration",
+      "ecr:CreateRepository",
+      "ecr:DeleteRepository",
+      "ecr:DeleteRepositoryPolicy",
+      "ecr:DescribeRepositories",
+      "ecr:GetLifecyclePolicy",
+      "ecr:GetRepositoryPolicy",
+      "ecr:ListTagsForResource",
+      "ecr:PutImageScanningConfiguration",
+      "ecr:PutImageTagMutability",
+      "ecr:PutLifecyclePolicy",
+      "ecr:SetRepositoryPolicy",
+      "ecr:TagResource",
+      "ecr:UntagResource",
+    ]
+    resources = [
+      "arn:aws:ecr:us-east-1:156041402173:repository/wordpress-php-fpm",
+      "arn:aws:ecr:us-east-1:156041402173:repository/wordpress-nginx",
+    ]
+  }
+
+  statement {
+    sid    = "MainInfraRDS"
+    effect = "Allow"
+    actions = [
+      "rds:AddTagsToResource",
+      "rds:CreateDBInstance",
+      "rds:CreateDBSubnetGroup",
+      "rds:DeleteDBInstance",
+      "rds:DeleteDBSubnetGroup",
+      "rds:DescribeDBEngineVersions",
+      "rds:DescribeDBInstances",
+      "rds:DescribeDBSubnetGroups",
+      "rds:DescribeOrderableDBInstanceOptions",
+      "rds:ListTagsForResource",
+      "rds:ModifyDBInstance",
+      "rds:ModifyDBSubnetGroup",
+      "rds:RemoveTagsFromResource",
+    ]
+    resources = ["*"]
+  }
+
+  statement {
+    sid    = "MainInfraSecretsManager"
+    effect = "Allow"
+    actions = [
+      "secretsmanager:CreateSecret",
+      "secretsmanager:DeleteSecret",
+      "secretsmanager:DescribeSecret",
+      "secretsmanager:GetResourcePolicy",
+      "secretsmanager:GetSecretValue",
+      "secretsmanager:PutResourcePolicy",
+      "secretsmanager:PutSecretValue",
+      "secretsmanager:RestoreSecret",
+      "secretsmanager:TagResource",
+      "secretsmanager:UntagResource",
+      "secretsmanager:UpdateSecret",
+    ]
+    resources = ["arn:aws:secretsmanager:us-east-1:156041402173:secret:wordpress-*"]
+  }
+
+  statement {
+    sid    = "MainInfraLogs"
+    effect = "Allow"
+    actions = [
+      "logs:CreateLogGroup",
+      "logs:DeleteLogGroup",
+      "logs:DeleteRetentionPolicy",
+      "logs:DescribeLogGroups",
+      "logs:ListTagsForResource",
+      "logs:ListTagsLogGroup",
+      "logs:PutRetentionPolicy",
+      "logs:TagLogGroup",
+      "logs:TagResource",
+      "logs:UntagLogGroup",
+      "logs:UntagResource",
+    ]
+    resources = ["arn:aws:logs:us-east-1:156041402173:log-group:/ecs/wordpress*"]
+  }
+
+  statement {
+    sid    = "MainInfraCloudWatch"
+    effect = "Allow"
+    actions = [
+      "cloudwatch:DeleteAlarms",
+      "cloudwatch:DescribeAlarms",
+      "cloudwatch:DescribeAlarmsForMetric",
+      "cloudwatch:ListTagsForResource",
+      "cloudwatch:PutMetricAlarm",
+      "cloudwatch:SetAlarmState",
+      "cloudwatch:TagResource",
+      "cloudwatch:UntagResource",
+    ]
+    resources = ["arn:aws:cloudwatch:us-east-1:156041402173:alarm:wordpress-*"]
+  }
+
+  statement {
+    sid    = "MainInfraSNS"
+    effect = "Allow"
+    actions = [
+      "sns:AddPermission",
+      "sns:CreateTopic",
+      "sns:DeleteTopic",
+      "sns:GetDataProtectionPolicy",
+      "sns:GetTopicAttributes",
+      "sns:ListSubscriptionsByTopic",
+      "sns:ListTagsForResource",
+      "sns:Publish",
+      "sns:RemovePermission",
+      "sns:SetTopicAttributes",
+      "sns:Subscribe",
+      "sns:TagResource",
+      "sns:Unsubscribe",
+      "sns:UntagResource",
+    ]
+    resources = ["arn:aws:sns:us-east-1:156041402173:wordpress-billing-alert"]
+  }
+
+  statement {
+    sid    = "MainInfraIAMRoles"
+    effect = "Allow"
+    actions = [
+      "iam:AddRoleToInstanceProfile",
+      "iam:AttachRolePolicy",
+      "iam:CreateInstanceProfile",
+      "iam:CreateRole",
+      "iam:DeleteInstanceProfile",
+      "iam:DeleteRole",
+      "iam:DeleteRolePolicy",
+      "iam:DetachRolePolicy",
+      "iam:GetInstanceProfile",
+      "iam:GetRole",
+      "iam:GetRolePolicy",
+      "iam:ListAttachedRolePolicies",
+      "iam:ListInstanceProfilesForRole",
+      "iam:ListRolePolicies",
+      "iam:PutRolePolicy",
+      "iam:RemoveRoleFromInstanceProfile",
+      "iam:TagInstanceProfile",
+      "iam:TagRole",
+      "iam:UntagInstanceProfile",
+      "iam:UntagRole",
+      "iam:UpdateAssumeRolePolicy",
+    ]
+    resources = [
+      "arn:aws:iam::156041402173:role/wordpress-*",
+      "arn:aws:iam::156041402173:instance-profile/wordpress-*",
+    ]
+  }
+
+  statement {
+    sid    = "MainInfraIAMPassRole"
+    effect = "Allow"
+    actions = [
+      "iam:PassRole",
+    ]
+    resources = [
+      "arn:aws:iam::156041402173:role/wordpress-*",
+    ]
+    condition {
+      test     = "StringEquals"
+      variable = "iam:PassedToService"
+      values = [
+        "ec2.amazonaws.com",
+        "ecs.amazonaws.com",
+        "ecs-tasks.amazonaws.com",
+      ]
+    }
+  }
+
+  statement {
+    sid    = "MainInfraIAMCreateServiceLinkedRole"
+    effect = "Allow"
+    actions = [
+      "iam:CreateServiceLinkedRole",
+    ]
+    resources = ["*"]
+    condition {
+      test     = "StringEquals"
+      variable = "iam:AWSServiceName"
+      values = [
+        "autoscaling.amazonaws.com",
+        "ec2.amazonaws.com",
+        "ecs.amazonaws.com",
+        "elasticloadbalancing.amazonaws.com",
+        "rds.amazonaws.com",
+      ]
+    }
+  }
+
+  statement {
+    sid    = "MainInfraIAMManageServiceLinkedRole"
+    effect = "Allow"
+    actions = [
+      "iam:DeleteServiceLinkedRole",
+      "iam:GetServiceLinkedRoleDeletionStatus",
+    ]
+    resources = ["arn:aws:iam::156041402173:role/aws-service-role/*"]
   }
 
   statement {
