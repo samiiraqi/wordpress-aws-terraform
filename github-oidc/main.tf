@@ -62,6 +62,7 @@ data "aws_iam_policy_document" "github_actions_state" {
     actions = [
       "iam:GetPolicy",
       "iam:GetPolicyVersion",
+      "iam:ListPolicyVersions",
       "iam:GetRole",
       "iam:GetOpenIDConnectProvider",
       "iam:ListRolePolicies",
