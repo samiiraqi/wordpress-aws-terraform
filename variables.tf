@@ -12,3 +12,4 @@ variable "alert_email" {
   type = string
 }
 
+# trigger
