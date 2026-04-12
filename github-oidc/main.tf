@@ -62,6 +62,7 @@ data "aws_iam_policy_document" "github_actions_state" {
     actions = [
       "iam:GetPolicy",
       "iam:GetPolicyVersion",
+      "iam:ListPolicyVersions",
       "iam:GetRole",
       "iam:GetOpenIDConnectProvider",
       "iam:ListRolePolicies",
@@ -210,6 +211,7 @@ data "aws_iam_policy_document" "github_actions_state" {
       "elasticloadbalancing:DeleteTargetGroup",
       "elasticloadbalancing:DeregisterTargets",
       "elasticloadbalancing:DescribeListeners",
+      "elasticloadbalancing:DescribeListenerAttributes",
       "elasticloadbalancing:DescribeLoadBalancerAttributes",
       "elasticloadbalancing:DescribeLoadBalancers",
       "elasticloadbalancing:DescribeRules",
@@ -409,6 +411,7 @@ data "aws_iam_policy_document" "github_actions_infra" {
       "sns:CreateTopic",
       "sns:DeleteTopic",
       "sns:GetDataProtectionPolicy",
+      "sns:GetSubscriptionAttributes",
       "sns:GetTopicAttributes",
       "sns:ListSubscriptionsByTopic",
       "sns:ListTagsForResource",
