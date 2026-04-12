@@ -384,7 +384,7 @@ data "aws_iam_policy_document" "github_actions_infra" {
       "logs:UntagLogGroup",
       "logs:UntagResource",
     ]
-    resources = ["arn:aws:logs:us-east-1:156041402173:log-group:/ecs/wordpress*"]
+    resources = ["arn:aws:logs:us-east-1:156041402173:log-group:*"]
   }
 
   statement {
