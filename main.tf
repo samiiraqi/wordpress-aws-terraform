@@ -28,7 +28,7 @@ module "billing" {
 
 module "networking" {
   source               = "terraform-aws-modules/vpc/aws"
-  version              = "5.1.2"
+  version              = "5.21.0"
   name                 = "${var.project_name}-vpc"
   cidr                 = "10.0.0.0/16"
   azs                  = ["us-east-1a", "us-east-1b"]
@@ -37,6 +37,9 @@ module "networking" {
   enable_dns_hostnames = true
   enable_dns_support   = true
   enable_nat_gateway   = false
+  manage_default_network_acl    = false
+  manage_default_route_table    = false
+  manage_default_security_group = false
   tags = {
     Name = "${var.project_name}-vpc"
   }
