@@ -528,7 +528,8 @@ module "iam_github_oidc_role" {
   name = "github-actions-oidc-role"
 
   subjects = [
-    "repo:samiiraqi/wordpress-aws-terraform:*"
+    "repo:samiiraqi/wordpress-aws-terraform:ref:refs/heads/main",
+    "repo:samiiraqi/wordpress-aws-terraform:ref:refs/pull/*/head"
   ]
 
   policies = {
