@@ -28,7 +28,7 @@ module "billing" {
 
 module "networking" {
   source               = "terraform-aws-modules/vpc/aws"
-  version              = "5.1.2"
+  version              = "5.21.0"
   name                 = "${var.project_name}-vpc"
   cidr                 = "10.0.0.0/16"
   azs                  = ["us-east-1a", "us-east-1b"]
