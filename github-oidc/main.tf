@@ -526,10 +526,11 @@ module "iam_github_oidc_role" {
   version = "~> 5.0"
 
   name = "github-actions-oidc-role"
-
   subjects = [
-    "repo:samiiraqi/wordpress-aws-terraform:*"
+    "repo:samiiraqi/wordpress-aws-terraform:ref:refs/heads/main",
+    "repo:samiiraqi/wordpress-aws-terraform:pull_request"
   ]
+
 
   policies = {
     GitHubActionsStatePolicy = aws_iam_policy.github_actions_state.arn
