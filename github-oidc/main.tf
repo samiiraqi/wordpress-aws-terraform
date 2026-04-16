@@ -190,6 +190,7 @@ data "aws_iam_policy_document" "github_actions_state" {
       "ec2:ModifyLaunchTemplate",
       "ec2:ModifySubnetAttribute",
       "ec2:ModifyVpcAttribute",
+      "ec2:RunInstances",
       "ec2:ReplaceRoute",
       "ec2:RevokeSecurityGroupEgress",
       "ec2:RevokeSecurityGroupIngress",
