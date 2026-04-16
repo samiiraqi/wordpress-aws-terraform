@@ -89,12 +89,12 @@ jobs:
           ALB: ${{ needs.terraform-apply.outputs.alb_dns }}
         run: |
           set -euo pipefail
-          for i in $(seq 1 60); do
+          for i in $(seq 1 90); do
             if curl -fsSL --max-time 15 "http://${ALB}/" >/dev/null 2>&1; then
               echo "ALB responded"
               exit 0
             fi
-            echo "Waiting for ALB (${i}/60)..."
+            echo "Waiting for ALB (${i}/90)..."
             sleep 10
           done
           echo "ALB did not become reachable in time"
