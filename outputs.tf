@@ -47,4 +47,6 @@ output "alb_dns_name" {
 output "ecs_cluster_name" {
   value = module.compute.ecs_cluster_name
 }
-
+output "wordpress_url" {
+  value = "https://${module.dns_and_ssl.domain_name}"
+}

@@ -48,14 +48,14 @@ jobs:
 
       - name: Terraform Plan
         env:
-          TF_VAR_project_name: ${{ secrets.TF_VAR_PROJECT_NAME }}
+          TF_VAR_project_name: ${{ vars.TF_VAR_PROJECT_NAME }}
           TF_VAR_alert_email: ${{ secrets.TF_VAR_ALERT_EMAIL }}
           TF_VAR_aws_region: ${{ secrets.TF_VAR_AWS_REGION }}
         run: terraform plan -out=plan.tfplan -input=false
 
       - name: Terraform Apply
         env:
-          TF_VAR_project_name: ${{ secrets.TF_VAR_PROJECT_NAME }}
+          TF_VAR_project_name: ${{ vars.TF_VAR_PROJECT_NAME }}
           TF_VAR_alert_email: ${{ secrets.TF_VAR_ALERT_EMAIL }}
           TF_VAR_aws_region: ${{ secrets.TF_VAR_AWS_REGION }}
         run: terraform apply -input=false plan.tfplan
@@ -98,21 +98,19 @@ jobs:
             --services wordpress-service
 
       - name: Wait for load balancer
-        env:
-          ALB: ${{ needs.terraform-apply.outputs.alb_dns }}
         run: |
           set -euo pipefail
           echo "Waiting 2 minutes for DNS propagation..."
           sleep 120
           for i in $(seq 1 90); do
-            if curl -fsSL --max-time 15 "http://${ALB}/" >/dev/null 2>&1; then
-              echo "ALB responded"
+            if curl -fsSL --max-time 15 "https://mywebsitehosting.net/" >/dev/null 2>&1; then
+              echo "Site responded"
               exit 0
             fi
-            echo "Waiting for ALB (${i}/90)..."
+            echo "Waiting for site (${i}/90)..."
             sleep 10
           done
-          echo "ALB did not become reachable in time"
+          echo "Site did not become reachable in time"
           exit 1
 
       - name: Checkout code
@@ -121,7 +119,7 @@ jobs:
       - name: DAST Scan with OWASP ZAP
         uses: zaproxy/action-baseline@7c4deb10e6261301961c86d65d54a516394f9aed # v0.14.0
         with:
-          target: 'http://${{ needs.terraform-apply.outputs.alb_dns }}'
+          target: 'https://mywebsitehosting.net'
           rules_file_name: '.zap/rules.tsv'
           cmd_options: '-a'
           fail_action: true
