@@ -101,6 +101,8 @@ jobs:
           ALB: ${{ needs.terraform-apply.outputs.alb_dns }}
         run: |
           set -euo pipefail
+          echo "Waiting 2 minutes for DNS propagation..."
+          sleep 120
           for i in $(seq 1 90); do
             if curl -fsSL --max-time 15 "http://${ALB}/" >/dev/null 2>&1; then
               echo "ALB responded"
