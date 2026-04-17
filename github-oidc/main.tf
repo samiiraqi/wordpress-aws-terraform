@@ -69,6 +69,7 @@ data "aws_iam_policy_document" "github_actions_state" {
       "iam:ListAttachedRolePolicies",
       "iam:CreatePolicy",
       "iam:CreatePolicyVersion",
+      "iam:DeletePolicy",
       "iam:DeletePolicyVersion",
       "iam:UpdateAssumeRolePolicy",
       "iam:AttachRolePolicy",
@@ -234,6 +235,7 @@ data "aws_iam_policy_document" "github_actions_state" {
     ]
     resources = ["*"]
   }
+
 }
 
 # Remaining MainInfra permissions (split so each managed policy JSON stays under 6144 chars).
@@ -479,6 +481,27 @@ data "aws_iam_policy_document" "github_actions_infra" {
     }
   }
 
+}
+
+data "aws_iam_policy_document" "github_actions_dns" {
+  statement {
+    sid    = "ACMAndRoute53"
+    effect = "Allow"
+    actions = [
+      "acm:RequestCertificate",
+      "acm:DescribeCertificate",
+      "acm:DeleteCertificate",
+      "acm:ListCertificates",
+      "acm:AddTagsToCertificate",
+      "acm:ListTagsForCertificate",
+      "route53:GetHostedZone",
+      "route53:ChangeResourceRecordSets",
+      "route53:ListResourceRecordSets",
+      "route53:GetChange",
+    ]
+    resources = ["*"]
+  }
+
   statement {
     sid    = "MainInfraIAMCreateServiceLinkedRole"
     effect = "Allow"
@@ -508,24 +531,6 @@ data "aws_iam_policy_document" "github_actions_infra" {
     ]
     resources = ["arn:aws:iam::156041402173:role/aws-service-role/*"]
   }
-
-  statement {
-    sid    = "ACMAndRoute53"
-    effect = "Allow"
-    actions = [
-      "acm:RequestCertificate",
-      "acm:DescribeCertificate",
-      "acm:DeleteCertificate",
-      "acm:ListCertificates",
-      "acm:AddTagsToCertificate",
-      "acm:ListTagsForCertificate",
-      "route53:GetHostedZone",
-      "route53:ChangeResourceRecordSets",
-      "route53:ListResourceRecordSets",
-      "route53:GetChange",
-    ]
-    resources = ["*"]
-  }
 }
 
 resource "aws_iam_policy" "github_actions_state" {
@@ -538,6 +543,12 @@ resource "aws_iam_policy" "github_actions_infra" {
   name        = "github-actions-terraform-infra-policy"
   description = "GitHub Actions: WordPress infrastructure (EC2, ELB, ECS, RDS, etc.)"
   policy      = data.aws_iam_policy_document.github_actions_infra.json
+}
+
+resource "aws_iam_policy" "github_actions_dns" {
+  name        = "github-actions-terraform-dns-policy"
+  description = "GitHub Actions: ACM and Route53 for SSL and DNS"
+  policy      = data.aws_iam_policy_document.github_actions_dns.json
 }
 
 module "iam_github_oidc_role" {
@@ -555,5 +566,6 @@ module "iam_github_oidc_role" {
   policies = {
     GitHubActionsStatePolicy = aws_iam_policy.github_actions_state.arn
     GitHubActionsInfraPolicy = aws_iam_policy.github_actions_infra.arn
+    GitHubActionsDNSPolicy   = aws_iam_policy.github_actions_dns.arn
   }
 }
