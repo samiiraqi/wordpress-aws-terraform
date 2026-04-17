@@ -508,6 +508,24 @@ data "aws_iam_policy_document" "github_actions_infra" {
     ]
     resources = ["arn:aws:iam::156041402173:role/aws-service-role/*"]
   }
+
+  statement {
+    sid    = "ACMAndRoute53"
+    effect = "Allow"
+    actions = [
+      "acm:RequestCertificate",
+      "acm:DescribeCertificate",
+      "acm:DeleteCertificate",
+      "acm:ListCertificates",
+      "acm:AddTagsToCertificate",
+      "acm:ListTagsForCertificate",
+      "route53:GetHostedZone",
+      "route53:ChangeResourceRecordSets",
+      "route53:ListResourceRecordSets",
+      "route53:GetChange",
+    ]
+    resources = ["*"]
+  }
 }
 
 resource "aws_iam_policy" "github_actions_state" {
