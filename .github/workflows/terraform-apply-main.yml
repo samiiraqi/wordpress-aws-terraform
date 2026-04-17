@@ -84,6 +84,18 @@ jobs:
     timeout-minutes: 45
 
     steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@ec61189d14ec14c8efccab744f656cffd0e33f37 # v6.1.0
+        with:
+          role-to-assume: arn:aws:iam::156041402173:role/github-actions-oidc-role
+          aws-region: us-east-1
+
+      - name: Wait for ECS service to stabilize
+        run: |
+          aws ecs wait services-stable \
+            --cluster wordpress-cluster \
+            --services wordpress-service
+
       - name: Wait for load balancer
         env:
           ALB: ${{ needs.terraform-apply.outputs.alb_dns }}
