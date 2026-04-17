@@ -63,8 +63,9 @@ jobs:
       - name: Get ALB DNS Name
         id: get-alb
         run: |
-          alb_dns=$(terraform output -raw alb_dns_name)
-          echo "alb_dns=$alb_dns" >> "$GITHUB_OUTPUT"
+          alb_dns=$(terraform output -raw alb_dns_name 2>/dev/null || echo "")
+          echo "alb_dns=${alb_dns}" >> "$GITHUB_OUTPUT"
+          echo "ALB DNS: ${alb_dns}"
 
   docker-images:
     name: Docker images
