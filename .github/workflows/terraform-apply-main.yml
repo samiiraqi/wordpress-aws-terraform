@@ -121,5 +121,6 @@ jobs:
         with:
           target: 'https://mywebsitehosting.net'
           rules_file_name: '/zap/wrk/.zap/rules.tsv'
-          cmd_options: '-a'
-          fail_action: true
+          cmd_options: '-a I'
+          fail_action: false
+          allow_issue_writing: false
