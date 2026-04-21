@@ -2,7 +2,7 @@ terraform {
   required_version = ">= 1.0"
   backend "s3" {
     bucket         = "wordpress-terraform-state-156041402173"
-    key            = "wordpress/terraform.tfstate"
+    key            = "wordpress/staging/terraform.tfstate"
     region         = "us-east-1"
     dynamodb_table = "wordpress-terraform-lock"
     encrypt        = true

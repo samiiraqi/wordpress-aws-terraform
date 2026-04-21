@@ -21,3 +21,8 @@ variable "db_username" {
   default = "wordpress_user"
 }
 
+variable "db_instance_class" {
+  type    = string
+  default = "db.t3.micro"
+}
+

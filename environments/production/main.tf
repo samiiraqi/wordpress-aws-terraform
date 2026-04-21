@@ -17,7 +17,7 @@ provider "aws" {
 }
 
 module "billing" {
-  source = "./modules/billing"
+  source = "../../modules/billing"
   providers = {
     aws = aws.us_east_1
   }
@@ -44,20 +44,21 @@ module "networking" {
 }
 
 module "security" {
-  source       = "./modules/security"
+  source       = "../../modules/security"
   project_name = var.project_name
   vpc_id       = module.networking.vpc_id
 }
 
 module "database" {
-  source             = "./modules/database"
+  source             = "../../modules/database"
   project_name       = var.project_name
   private_subnet_ids = module.networking.private_subnets
   rds_sg_id          = module.security.rds_sg_id
+  db_instance_class  = var.db_instance_class
 }
 
 module "compute" {
-  source            = "./modules/compute"
+  source            = "../../modules/compute"
   project_name      = var.project_name
   vpc_id            = module.networking.vpc_id
   public_subnet_ids = module.networking.public_subnets
@@ -68,10 +69,11 @@ module "compute" {
   db_username       = module.database.db_username
   db_secret_arn     = module.database.db_secret_arn
   sns_topic_arn     = module.billing.sns_topic_arn
+  instance_type     = var.instance_type
 }
 
 module "dns_and_ssl" {
-  source           = "./modules/dns_and_ssl"
+  source           = "../../modules/dns_and_ssl"
   project_name     = var.project_name
   domain_name      = "mywebsitehosting.net"
   hosted_zone_id   = "Z1000332DD65SQUMW9GP"
