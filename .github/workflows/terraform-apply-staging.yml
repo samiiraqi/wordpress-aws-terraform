@@ -122,6 +122,6 @@ jobs:
         with:
           target: 'https://staging.mywebsitehosting.net'
           rules_file_name: '/zap/wrk/.zap/rules.tsv'
-          cmd_options: '-a I'
+          cmd_options: '-a -I -z "-config scanner.attackStrength=HIGH"'
           fail_action: false
           allow_issue_writing: false
