@@ -5,6 +5,11 @@ on:
     branches:
       - main
       - dev
+    paths:
+      - 'docker/**'
+      - 'tests/**'
+      - 'modules/**'
+      - 'environments/**'
 
 concurrency:
   group: test-${{ github.event.pull_request.number || github.ref }}
