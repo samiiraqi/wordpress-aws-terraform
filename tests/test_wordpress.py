@@ -22,3 +22,4 @@ def test_rest_api_returns_200():
 def test_wp_admin_redirects():
     response = requests.get(f"{BASE_URL}/wp-admin/", timeout=10, allow_redirects=False)
     assert response.status_code == 302
+# test
