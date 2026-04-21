@@ -12,10 +12,8 @@ services:
       timeout: 5s
       retries: 10
 
-  wordpress:
-    image: wordpress:latest
-    ports:
-      - "80:80"
+  php-fpm:
+    image: wordpress-php-fpm:latest
     environment:
       WORDPRESS_DB_HOST: db
       WORDPRESS_DB_NAME: wordpress
@@ -24,9 +22,23 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    volumes:
+      - wordpress-data:/var/www/html
+
+  nginx:
+    image: wordpress-nginx:latest
+    ports:
+      - "80:80"
+    depends_on:
+      - php-fpm
+    volumes:
+      - wordpress-data:/var/www/html:ro
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:80/"]
       interval: 10s
       timeout: 5s
       retries: 12
       start_period: 30s
+
+volumes:
+  wordpress-data:
