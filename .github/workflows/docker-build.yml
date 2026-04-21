@@ -28,3 +28,4 @@ jobs:
     with:
       push: ${{ github.event_name == 'push' }}
       image_tag: ${{ github.sha }}
+      project_name: 'wordpress'

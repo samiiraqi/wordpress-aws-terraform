@@ -74,6 +74,7 @@ jobs:
     with:
       push: true
       image_tag: ${{ github.sha }}
+      project_name: 'wordpress-staging'
     secrets: inherit
 
   dast:
