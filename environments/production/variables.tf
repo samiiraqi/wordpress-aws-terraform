@@ -12,6 +12,16 @@ variable "alert_email" {
   type = string
 }
 
+variable "instance_type" {
+  type    = string
+  default = "t2.micro"
+}
+
+variable "db_instance_class" {
+  type    = string
+  default = "db.t3.micro"
+}
+
 # trigger
 # retrigger
 # retrigger

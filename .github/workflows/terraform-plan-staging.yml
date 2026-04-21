@@ -1,4 +1,4 @@
-name: Terraform Plan - Main Infrastructure
+name: Terraform Plan - Staging Infrastructure
 
 on:
   pull_request:
@@ -6,11 +6,11 @@ on:
       - main
       - dev
     paths:
-      - 'environments/production/**'
+      - 'environments/staging/**'
       - 'modules/**'
 
 concurrency:
-  group: terraform-plan-main-${{ github.event.pull_request.number || github.ref }}
+  group: terraform-plan-staging-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 permissions:
@@ -20,7 +20,7 @@ permissions:
 
 jobs:
   terraform-plan:
-    name: Terraform Plan - Main
+    name: Terraform Plan - Staging
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
@@ -44,28 +44,27 @@ jobs:
         uses: terraform-linters/setup-tflint@b480b8fcdaa6f2c577f8e4fa799e89e756bb7c93 # v6.2.2
 
       - name: Terraform Init
-        working-directory: environments/production
+        working-directory: environments/staging
         run: terraform init
 
       - name: Terraform Format Check
-        working-directory: environments/production
+        working-directory: environments/staging
         run: terraform fmt -check
 
       - name: tflint
-        working-directory: environments/production
+        working-directory: environments/staging
         run: |
           tflint --init
           tflint
 
       - name: Terraform Validate
-        working-directory: environments/production
+        working-directory: environments/staging
         run: terraform validate
 
       - name: Terraform Plan
         id: plan
-        working-directory: environments/production
+        working-directory: environments/staging
         env:
-          TF_VAR_project_name: ${{ vars.TF_VAR_PROJECT_NAME }}
           TF_VAR_alert_email: ${{ secrets.TF_VAR_ALERT_EMAIL }}
           TF_VAR_aws_region: ${{ secrets.TF_VAR_AWS_REGION }}
         run: terraform plan -no-color -out=plan.tfplan 2>&1 | tee /tmp/plan_output.txt
@@ -81,8 +80,8 @@ jobs:
         run: |
           set -euo pipefail
           {
-            echo '<!-- terraform-plan-main -->'
-            echo '## Terraform Plan Results - Main Infrastructure'
+            echo '<!-- terraform-plan-staging -->'
+            echo '## Terraform Plan Results - Staging Infrastructure'
             echo ''
             echo 'Full plan output is attached as workflow artifact **terraform-plan-text**.'
             echo ''
@@ -102,7 +101,7 @@ jobs:
         with:
           issue-number: ${{ github.event.pull_request.number }}
           comment-author: github-actions[bot]
-          body-includes: '<!-- terraform-plan-main -->'
+          body-includes: '<!-- terraform-plan-staging -->'
 
       - name: Comment Plan on PR
         uses: peter-evans/create-or-update-comment@e8674b075228eee787fea43ef493e45ece1004c9 # v5.0.0

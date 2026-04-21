@@ -49,3 +49,8 @@ variable "sns_topic_arn" {
   type        = string
   description = "SNS topic ARN for notifications"
 }
+
+variable "instance_type" {
+  type    = string
+  default = "t2.micro"
+}

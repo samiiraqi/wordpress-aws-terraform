@@ -41,7 +41,7 @@ module "rds" {
 
   engine            = "mysql"
   engine_version    = "8.0"
-  instance_class    = "db.t3.micro"
+  instance_class    = var.db_instance_class
   allocated_storage = 20
   storage_type      = "gp2"
 
