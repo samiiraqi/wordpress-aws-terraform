@@ -135,7 +135,9 @@ data "aws_iam_policy_document" "github_actions_state" {
     ]
     resources = [
       "arn:aws:ecr:us-east-1:156041402173:repository/wordpress-php-fpm",
-      "arn:aws:ecr:us-east-1:156041402173:repository/wordpress-nginx"
+      "arn:aws:ecr:us-east-1:156041402173:repository/wordpress-nginx",
+      "arn:aws:ecr:us-east-1:156041402173:repository/wordpress-staging-php-fpm",
+      "arn:aws:ecr:us-east-1:156041402173:repository/wordpress-staging-nginx"
     ]
   }
 
@@ -328,6 +330,8 @@ data "aws_iam_policy_document" "github_actions_infra" {
     resources = [
       "arn:aws:ecr:us-east-1:156041402173:repository/wordpress-php-fpm",
       "arn:aws:ecr:us-east-1:156041402173:repository/wordpress-nginx",
+      "arn:aws:ecr:us-east-1:156041402173:repository/wordpress-staging-php-fpm",
+      "arn:aws:ecr:us-east-1:156041402173:repository/wordpress-staging-nginx",
     ]
   }
 
