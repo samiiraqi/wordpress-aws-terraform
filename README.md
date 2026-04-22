@@ -86,4 +86,4 @@ terraform destroy
 ## Notes
 
 - Docker images are built and pushed to ECR automatically during `terraform apply`
-- Destroy resources after testing to avoid charges (ALB ~$16/month, VPC Endpoints ~$7/each)
+- Destroy resources after testing to avoid charges (ALB ~$16/month, VPC Endpoints ~$7/each)# test feature
