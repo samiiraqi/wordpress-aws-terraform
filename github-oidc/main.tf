@@ -430,7 +430,10 @@ data "aws_iam_policy_document" "github_actions_infra" {
       "sns:Unsubscribe",
       "sns:UntagResource",
     ]
-    resources = ["arn:aws:sns:us-east-1:156041402173:wordpress-billing-alert"]
+    resources = [
+      "arn:aws:sns:us-east-1:156041402173:wordpress-billing-alert",
+      "arn:aws:sns:us-east-1:156041402173:wordpress-staging-billing-alert",
+    ]
   }
 
   statement {
@@ -563,7 +566,8 @@ module "iam_github_oidc_role" {
   subjects = [
     "repo:samiiraqi/wordpress-aws-terraform:ref:refs/heads/main",
     "repo:samiiraqi/wordpress-aws-terraform:pull_request",
-    "repo:samiiraqi/wordpress-aws-terraform:environment:production"
+    "repo:samiiraqi/wordpress-aws-terraform:environment:production",
+    "repo:samiiraqi/wordpress-aws-terraform:environment:staging"
   ]
 
 
