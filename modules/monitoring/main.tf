@@ -121,6 +121,13 @@ locals {
 
 # --- GuardDuty ---
 
+# GuardDuty allows only one detector per region per account.
+# If a detector already exists, import it before applying:
+#   terraform import aws_guardduty_detector.main $(aws guardduty list-detectors --query 'DetectorIds[0]' --output text)
+data "aws_guardduty_detector" "existing" {
+  count = 0
+}
+
 resource "aws_guardduty_detector" "main" {
   enable = true
 

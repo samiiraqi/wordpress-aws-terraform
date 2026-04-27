@@ -232,8 +232,10 @@ data "aws_iam_policy_document" "github_actions_state" {
       "elasticloadbalancing:RegisterTargets",
       "elasticloadbalancing:RemoveListenerCertificates",
       "elasticloadbalancing:RemoveTags",
+      "elasticloadbalancing:CreateRule",
       "elasticloadbalancing:SetSecurityGroups",
       "elasticloadbalancing:SetSubnets",
+      "elasticloadbalancing:SetWebACL",
     ]
     resources = ["*"]
   }
@@ -488,6 +490,22 @@ data "aws_iam_policy_document" "github_actions_infra" {
     }
   }
 
+  statement {
+    sid    = "MainInfraIAMPassRoleFlowLogs"
+    effect = "Allow"
+    actions = [
+      "iam:PassRole",
+    ]
+    resources = [
+      "arn:aws:iam::156041402173:role/*-vpc-flow-logs-role",
+    ]
+    condition {
+      test     = "StringEquals"
+      variable = "iam:PassedToService"
+      values   = ["vpc-flow-logs.amazonaws.com"]
+    }
+  }
+
 }
 
 data "aws_iam_policy_document" "github_actions_dns" {
@@ -525,6 +543,7 @@ data "aws_iam_policy_document" "github_actions_dns" {
         "ecs.amazonaws.com",
         "elasticloadbalancing.amazonaws.com",
         "rds.amazonaws.com",
+        "securityhub.amazonaws.com",
       ]
     }
   }
@@ -607,6 +626,7 @@ data "aws_iam_policy_document" "github_actions_security" {
       "s3:DeleteBucket",
       "s3:DeleteObject",
       "s3:GetBucketAcl",
+      "s3:GetBucketCORS",
       "s3:GetBucketPolicy",
       "s3:GetBucketPublicAccessBlock",
       "s3:GetBucketTagging",
