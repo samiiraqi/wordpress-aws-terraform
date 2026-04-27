@@ -540,6 +540,168 @@ data "aws_iam_policy_document" "github_actions_dns" {
   }
 }
 
+data "aws_iam_policy_document" "github_actions_security" {
+  statement {
+    sid    = "WAFv2"
+    effect = "Allow"
+    actions = [
+      "wafv2:AssociateWebACL",
+      "wafv2:CreateWebACL",
+      "wafv2:DeleteWebACL",
+      "wafv2:DisassociateWebACL",
+      "wafv2:GetWebACL",
+      "wafv2:GetWebACLForResource",
+      "wafv2:ListResourcesForWebACL",
+      "wafv2:ListTagsForResource",
+      "wafv2:ListWebACLs",
+      "wafv2:TagResource",
+      "wafv2:UntagResource",
+      "wafv2:UpdateWebACL",
+    ]
+    resources = ["*"]
+  }
+
+  statement {
+    sid    = "CloudFront"
+    effect = "Allow"
+    actions = [
+      "cloudfront:CreateDistribution",
+      "cloudfront:DeleteDistribution",
+      "cloudfront:GetDistribution",
+      "cloudfront:GetDistributionConfig",
+      "cloudfront:ListDistributions",
+      "cloudfront:ListTagsForResource",
+      "cloudfront:TagResource",
+      "cloudfront:UntagResource",
+      "cloudfront:UpdateDistribution",
+    ]
+    resources = ["*"]
+  }
+
+  statement {
+    sid    = "CloudTrail"
+    effect = "Allow"
+    actions = [
+      "cloudtrail:AddTags",
+      "cloudtrail:CreateTrail",
+      "cloudtrail:DeleteTrail",
+      "cloudtrail:DescribeTrails",
+      "cloudtrail:GetEventSelectors",
+      "cloudtrail:GetTrail",
+      "cloudtrail:GetTrailStatus",
+      "cloudtrail:ListTags",
+      "cloudtrail:PutEventSelectors",
+      "cloudtrail:RemoveTags",
+      "cloudtrail:StartLogging",
+      "cloudtrail:StopLogging",
+      "cloudtrail:UpdateTrail",
+    ]
+    resources = ["*"]
+  }
+
+  statement {
+    sid    = "CloudTrailS3"
+    effect = "Allow"
+    actions = [
+      "s3:CreateBucket",
+      "s3:DeleteBucket",
+      "s3:DeleteObject",
+      "s3:GetBucketAcl",
+      "s3:GetBucketPolicy",
+      "s3:GetBucketPublicAccessBlock",
+      "s3:GetBucketTagging",
+      "s3:ListBucket",
+      "s3:PutBucketPolicy",
+      "s3:PutBucketPublicAccessBlock",
+      "s3:PutBucketTagging",
+    ]
+    resources = [
+      "arn:aws:s3:::wordpress-cloudtrail-156041402173",
+      "arn:aws:s3:::wordpress-cloudtrail-156041402173/*",
+      "arn:aws:s3:::wordpress-staging-cloudtrail-156041402173",
+      "arn:aws:s3:::wordpress-staging-cloudtrail-156041402173/*",
+    ]
+  }
+
+  statement {
+    sid    = "GuardDuty"
+    effect = "Allow"
+    actions = [
+      "guardduty:CreateDetector",
+      "guardduty:DeleteDetector",
+      "guardduty:GetDetector",
+      "guardduty:ListDetectors",
+      "guardduty:ListTagsForResource",
+      "guardduty:TagResource",
+      "guardduty:UntagResource",
+      "guardduty:UpdateDetector",
+    ]
+    resources = ["*"]
+  }
+
+  statement {
+    sid    = "SecurityHub"
+    effect = "Allow"
+    actions = [
+      "securityhub:BatchDisableStandards",
+      "securityhub:BatchEnableStandards",
+      "securityhub:DescribeHub",
+      "securityhub:DisableSecurityHub",
+      "securityhub:EnableSecurityHub",
+      "securityhub:GetEnabledStandards",
+      "securityhub:TagResource",
+      "securityhub:UntagResource",
+    ]
+    resources = ["*"]
+  }
+
+  statement {
+    sid    = "VPCFlowLogs"
+    effect = "Allow"
+    actions = [
+      "ec2:CreateFlowLogs",
+      "ec2:DeleteFlowLogs",
+      "ec2:DescribeFlowLogs",
+      "logs:PutResourcePolicy",
+      "logs:DeleteResourcePolicy",
+      "logs:DescribeResourcePolicies",
+    ]
+    resources = ["*"]
+  }
+
+  statement {
+    sid    = "EventBridge"
+    effect = "Allow"
+    actions = [
+      "events:DeleteRule",
+      "events:DescribeRule",
+      "events:ListTagsForResource",
+      "events:ListTargetsByRule",
+      "events:PutRule",
+      "events:PutTargets",
+      "events:RemoveTargets",
+      "events:TagResource",
+      "events:UntagResource",
+    ]
+    resources = ["*"]
+  }
+
+  statement {
+    sid    = "CloudWatchDashboard"
+    effect = "Allow"
+    actions = [
+      "cloudwatch:DeleteDashboards",
+      "cloudwatch:GetDashboard",
+      "cloudwatch:ListDashboards",
+      "cloudwatch:PutDashboard",
+      "logs:DeleteMetricFilter",
+      "logs:DescribeMetricFilters",
+      "logs:PutMetricFilter",
+    ]
+    resources = ["*"]
+  }
+}
+
 resource "aws_iam_policy" "github_actions_state" {
   name        = "github-actions-terraform-state-policy"
   description = "GitHub Actions: state backend, KMS, OIDC IAM, SSM, ECR push, plus EC2/VPC and ELB for main infra"
@@ -558,6 +720,12 @@ resource "aws_iam_policy" "github_actions_dns" {
   policy      = data.aws_iam_policy_document.github_actions_dns.json
 }
 
+resource "aws_iam_policy" "github_actions_security" {
+  name        = "github-actions-terraform-security-policy"
+  description = "GitHub Actions: WAF, CloudFront, CloudTrail, GuardDuty, Security Hub, VPC Flow Logs"
+  policy      = data.aws_iam_policy_document.github_actions_security.json
+}
+
 module "iam_github_oidc_role" {
   source  = "terraform-aws-modules/iam/aws//modules/iam-github-oidc-role"
   version = "~> 5.0"
@@ -572,8 +740,9 @@ module "iam_github_oidc_role" {
 
 
   policies = {
-    GitHubActionsStatePolicy = aws_iam_policy.github_actions_state.arn
-    GitHubActionsInfraPolicy = aws_iam_policy.github_actions_infra.arn
-    GitHubActionsDNSPolicy   = aws_iam_policy.github_actions_dns.arn
+    GitHubActionsStatePolicy    = aws_iam_policy.github_actions_state.arn
+    GitHubActionsInfraPolicy    = aws_iam_policy.github_actions_infra.arn
+    GitHubActionsDNSPolicy      = aws_iam_policy.github_actions_dns.arn
+    GitHubActionsSecurityPolicy = aws_iam_policy.github_actions_security.arn
   }
 }
