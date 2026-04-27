@@ -16,3 +16,23 @@ variable "aws_region" {
   type        = string
   description = "AWS region used for Security Hub standards ARNs"
 }
+
+variable "alb_arn" {
+  type        = string
+  description = "Full ARN of the ALB for CloudWatch metrics"
+}
+
+variable "ecs_cluster_name" {
+  type        = string
+  description = "ECS cluster name for CloudWatch metrics"
+}
+
+variable "ecs_service_name" {
+  type        = string
+  description = "ECS service name for CloudWatch metrics"
+}
+
+variable "db_identifier" {
+  type        = string
+  description = "RDS DB instance identifier for CloudWatch metrics"
+}
