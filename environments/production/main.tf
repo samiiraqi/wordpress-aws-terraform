@@ -72,6 +72,14 @@ module "compute" {
   instance_type     = var.instance_type
 }
 
+module "monitoring" {
+  source         = "../../modules/monitoring"
+  project_name   = var.project_name
+  vpc_id         = module.networking.vpc_id
+  aws_account_id = "156041402173"
+  aws_region     = var.aws_region
+}
+
 module "waf" {
   source       = "../../modules/waf"
   project_name = var.project_name
