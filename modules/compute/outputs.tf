@@ -21,3 +21,11 @@ output "ecs_cluster_name" {
 output "alb_arn_suffix" {
   value = module.alb.lb_arn_suffix
 }
+
+output "ecs_cluster_id" {
+  value = module.ecs_cluster.cluster_id
+}
+
+output "ecs_capacity_provider" {
+  value = aws_ecs_capacity_provider.main.name
+}
