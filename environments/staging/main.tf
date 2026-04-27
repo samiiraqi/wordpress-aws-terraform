@@ -73,11 +73,15 @@ module "compute" {
 }
 
 module "monitoring" {
-  source         = "../../modules/monitoring"
-  project_name   = var.project_name
-  vpc_id         = module.networking.vpc_id
-  aws_account_id = "156041402173"
-  aws_region     = var.aws_region
+  source           = "../../modules/monitoring"
+  project_name     = var.project_name
+  vpc_id           = module.networking.vpc_id
+  aws_account_id   = "156041402173"
+  aws_region       = var.aws_region
+  alb_arn          = module.compute.alb_arn
+  ecs_cluster_name = "${var.project_name}-cluster"
+  ecs_service_name = "${var.project_name}-service"
+  db_identifier    = "${var.project_name}-db"
 }
 
 module "waf" {
