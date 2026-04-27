@@ -81,6 +81,7 @@ module "grafana" {
   ecs_cluster_id         = module.compute.ecs_cluster_id
   ecs_capacity_provider  = module.compute.ecs_capacity_provider
   aws_region             = var.aws_region
+  domain_name            = "mywebsitehosting.net"
 }
 
 module "monitoring" {
