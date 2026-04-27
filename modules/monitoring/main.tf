@@ -115,6 +115,10 @@ resource "aws_flow_log" "main" {
   }
 }
 
+locals {
+  alb_arn_suffix = split("loadbalancer/", var.alb_arn)[1]
+}
+
 # --- GuardDuty ---
 
 resource "aws_guardduty_detector" "main" {
@@ -150,4 +154,157 @@ resource "aws_securityhub_standards_subscription" "aws_foundational" {
 resource "aws_securityhub_standards_subscription" "cis" {
   depends_on    = [aws_securityhub_account.main]
   standards_arn = "arn:aws:securityhub:::ruleset/cis-aws-foundations-benchmark/v/1.2.0"
+}
+
+# --- GuardDuty findings metric (via EventBridge → CloudWatch Logs → metric filter) ---
+
+resource "aws_cloudwatch_log_group" "guardduty_findings" {
+  name              = "/aws/guardduty/${var.project_name}-findings"
+  retention_in_days = 90
+
+  tags = {
+    Name = "${var.project_name}-guardduty-findings"
+  }
+}
+
+resource "aws_cloudwatch_log_metric_filter" "guardduty_findings" {
+  name           = "${var.project_name}-guardduty-findings"
+  log_group_name = aws_cloudwatch_log_group.guardduty_findings.name
+  pattern        = "{ $.detail.type = \"*\" }"
+
+  metric_transformation {
+    name          = "GuardDutyFindings"
+    namespace     = "${var.project_name}/GuardDuty"
+    value         = "1"
+    default_value = "0"
+  }
+}
+
+resource "aws_cloudwatch_event_rule" "guardduty_findings" {
+  name        = "${var.project_name}-guardduty-findings"
+  description = "Capture GuardDuty findings"
+
+  event_pattern = jsonencode({
+    source      = ["aws.guardduty"]
+    detail-type = ["GuardDuty Finding"]
+  })
+}
+
+resource "aws_cloudwatch_event_target" "guardduty_findings" {
+  rule      = aws_cloudwatch_event_rule.guardduty_findings.name
+  target_id = "GuardDutyFindingsToCloudWatch"
+  arn       = aws_cloudwatch_log_group.guardduty_findings.arn
+}
+
+resource "aws_cloudwatch_log_resource_policy" "guardduty_findings" {
+  policy_name = "${var.project_name}-guardduty-events-policy"
+
+  policy_document = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect    = "Allow"
+      Principal = { Service = ["events.amazonaws.com", "delivery.logs.amazonaws.com"] }
+      Action    = ["logs:CreateLogStream", "logs:PutLogEvents"]
+      Resource  = "${aws_cloudwatch_log_group.guardduty_findings.arn}:*"
+    }]
+  })
+}
+
+# --- CloudWatch Dashboard ---
+
+resource "aws_cloudwatch_dashboard" "main" {
+  dashboard_name = "${var.project_name}-dashboard"
+
+  dashboard_body = jsonencode({
+    widgets = [
+      {
+        type   = "metric"
+        x      = 0
+        y      = 0
+        width  = 12
+        height = 6
+        properties = {
+          title  = "WAF Blocked Requests"
+          region = var.aws_region
+          metrics = [
+            ["AWS/WAFV2", "BlockedRequests", "WebACL", "${var.project_name}-waf", "Rule", "ALL", "Region", var.aws_region, { stat = "Sum", period = 300, label = "Blocked (Regional WAF)" }],
+            ["AWS/WAFV2", "BlockedRequests", "WebACL", "${var.project_name}-waf-cloudfront", "Rule", "ALL", "Region", "us-east-1", { stat = "Sum", period = 300, label = "Blocked (CloudFront WAF)" }]
+          ]
+          view    = "timeSeries"
+          stacked = false
+        }
+      },
+      {
+        type   = "metric"
+        x      = 12
+        y      = 0
+        width  = 12
+        height = 6
+        properties = {
+          title  = "ALB Request Count & Errors"
+          region = var.aws_region
+          metrics = [
+            ["AWS/ApplicationELB", "RequestCount", "LoadBalancer", local.alb_arn_suffix, { stat = "Sum", period = 300, label = "Requests" }],
+            ["AWS/ApplicationELB", "HTTPCode_ELB_5XX_Count", "LoadBalancer", local.alb_arn_suffix, { stat = "Sum", period = 300, label = "5XX Errors", color = "#d62728" }],
+            ["AWS/ApplicationELB", "HTTPCode_ELB_4XX_Count", "LoadBalancer", local.alb_arn_suffix, { stat = "Sum", period = 300, label = "4XX Errors", color = "#ff7f0e" }]
+          ]
+          view    = "timeSeries"
+          stacked = false
+        }
+      },
+      {
+        type   = "metric"
+        x      = 0
+        y      = 6
+        width  = 12
+        height = 6
+        properties = {
+          title  = "ECS CPU & Memory Utilization"
+          region = var.aws_region
+          metrics = [
+            ["AWS/ECS", "CPUUtilization", "ClusterName", var.ecs_cluster_name, "ServiceName", var.ecs_service_name, { stat = "Average", period = 300, label = "CPU %" }],
+            ["AWS/ECS", "MemoryUtilization", "ClusterName", var.ecs_cluster_name, "ServiceName", var.ecs_service_name, { stat = "Average", period = 300, label = "Memory %", color = "#9467bd" }]
+          ]
+          view    = "timeSeries"
+          stacked = false
+          yAxis = {
+            left = { min = 0, max = 100 }
+          }
+        }
+      },
+      {
+        type   = "metric"
+        x      = 12
+        y      = 6
+        width  = 12
+        height = 6
+        properties = {
+          title  = "RDS Connections"
+          region = var.aws_region
+          metrics = [
+            ["AWS/RDS", "DatabaseConnections", "DBInstanceIdentifier", var.db_identifier, { stat = "Average", period = 300, label = "Connections" }],
+            ["AWS/RDS", "FreeStorageSpace", "DBInstanceIdentifier", var.db_identifier, { stat = "Average", period = 300, label = "Free Storage (bytes)", yAxis = "right" }]
+          ]
+          view    = "timeSeries"
+          stacked = false
+        }
+      },
+      {
+        type   = "metric"
+        x      = 0
+        y      = 12
+        width  = 12
+        height = 6
+        properties = {
+          title  = "GuardDuty Findings"
+          region = var.aws_region
+          metrics = [
+            ["${var.project_name}/GuardDuty", "GuardDutyFindings", { stat = "Sum", period = 300, label = "Findings", color = "#d62728" }]
+          ]
+          view    = "timeSeries"
+          stacked = false
+        }
+      }
+    ]
+  })
 }
