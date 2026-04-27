@@ -72,6 +72,29 @@ module "compute" {
   instance_type     = var.instance_type
 }
 
+module "waf" {
+  source       = "../../modules/waf"
+  project_name = var.project_name
+  alb_arn      = module.compute.alb_arn
+}
+
+module "waf_cloudfront" {
+  source = "../../modules/waf-cloudfront"
+  providers = {
+    aws = aws.us_east_1
+  }
+  project_name = var.project_name
+}
+
+module "cloudfront" {
+  source              = "../../modules/cloudfront"
+  project_name        = var.project_name
+  alb_dns_name        = module.compute.alb_dns_name
+  domain_name         = "mywebsitehosting.net"
+  acm_certificate_arn = "arn:aws:acm:us-east-1:156041402173:certificate/59a08c3f-b47e-4dd9-8f8e-027c74b137ff"
+  web_acl_arn         = module.waf_cloudfront.web_acl_arn
+}
+
 module "dns_and_ssl" {
   source           = "../../modules/dns_and_ssl"
   project_name     = var.project_name
