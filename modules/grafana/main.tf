@@ -120,7 +120,8 @@ resource "aws_ecs_task_definition" "grafana" {
     }]
 
     environment = [
-      { name = "GF_SERVER_ROOT_URL", value = "%(protocol)s://%(domain)s/grafana/" },
+      { name = "GF_SERVER_HTTP_ADDR", value = "0.0.0.0" },
+      { name = "GF_SERVER_ROOT_URL", value = "https://${var.domain_name}/grafana/" },
       { name = "GF_SERVER_SERVE_FROM_SUB_PATH", value = "true" },
       { name = "GF_AUTH_ANONYMOUS_ENABLED", value = "false" },
       { name = "GF_AWS_DEFAULT_REGION", value = var.aws_region },

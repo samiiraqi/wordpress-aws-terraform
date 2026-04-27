@@ -30,3 +30,8 @@ variable "aws_region" {
   type        = string
   description = "AWS region used for CloudWatch datasource and log configuration"
 }
+
+variable "domain_name" {
+  type        = string
+  description = "Domain name used for Grafana root URL"
+}
