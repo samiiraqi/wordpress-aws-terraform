@@ -136,6 +136,7 @@ module "cloudfront" {
   domain_name         = "mywebsitehosting.net"
   acm_certificate_arn = module.dns_and_ssl.certificate_arn
   web_acl_arn         = module.waf_cloudfront.web_acl_arn
+  depends_on          = [module.dns_and_ssl]
 }
 
 module "dns_and_ssl" {
