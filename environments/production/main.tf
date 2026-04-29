@@ -8,11 +8,6 @@ terraform {
 }
 
 import {
-  to = module.dns_and_ssl.aws_acm_certificate.this
-  id = "arn:aws:acm:us-east-1:156041402173:certificate/59a08c3f-b47e-4dd9-8f8e-027c74b137ff"
-}
-
-import {
   to = module.monitoring.aws_guardduty_detector.main
   id = "eecd7d139f4050d633d44f79d911cc66"
 }
@@ -126,12 +121,6 @@ module "waf" {
   alb_arn      = module.compute.alb_arn
 }
 
-data "aws_acm_certificate" "cloudfront" {
-  provider = aws.us_east_1
-  domain   = "mywebsitehosting.net"
-  statuses = ["ISSUED"]
-}
-
 module "waf_cloudfront" {
   source = "../../modules/waf-cloudfront"
   providers = {
@@ -145,7 +134,7 @@ module "cloudfront" {
   project_name        = var.project_name
   alb_dns_name        = module.compute.alb_dns_name
   domain_name         = "mywebsitehosting.net"
-  acm_certificate_arn = data.aws_acm_certificate.cloudfront.arn
+  acm_certificate_arn = module.dns_and_ssl.certificate_arn
   web_acl_arn         = module.waf_cloudfront.web_acl_arn
 }
 
