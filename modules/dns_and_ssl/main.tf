@@ -1,15 +1,15 @@
 terraform {
   required_providers {
     aws = {
-      source                = "hashicorp/aws"
-      version               = "~> 5.0"
-      configuration_aliases = [aws]
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
     }
   }
 }
 
 # ACM Certificate
 resource "aws_acm_certificate" "this" {
+  provider          = aws
   domain_name       = var.domain_name
   validation_method = "DNS"
 
@@ -24,6 +24,7 @@ resource "aws_acm_certificate" "this" {
 
 # DNS Validation Record
 resource "aws_route53_record" "cert_validation" {
+  provider = aws
   for_each = {
     for dvo in aws_acm_certificate.this.domain_validation_options : dvo.domain_name => {
       name   = dvo.resource_record_name
@@ -42,15 +43,17 @@ resource "aws_route53_record" "cert_validation" {
 
 # Certificate Validation
 resource "aws_acm_certificate_validation" "this" {
+  provider                = aws
   certificate_arn         = aws_acm_certificate.this.arn
   validation_record_fqdns = [for record in aws_route53_record.cert_validation : record.fqdn]
 }
 
 # Route53 A Record -> ALB
 resource "aws_route53_record" "wordpress" {
-  zone_id = var.hosted_zone_id
-  name    = var.domain_name
-  type    = "A"
+  provider = aws
+  zone_id  = var.hosted_zone_id
+  name     = var.domain_name
+  type     = "A"
 
   alias {
     name                   = var.alb_dns_name
@@ -61,6 +64,7 @@ resource "aws_route53_record" "wordpress" {
 
 # ALB HTTPS Listener
 resource "aws_lb_listener" "https" {
+  provider          = aws
   load_balancer_arn = var.alb_arn
   port              = "443"
   protocol          = "HTTPS"
@@ -72,4 +76,3 @@ resource "aws_lb_listener" "https" {
     target_group_arn = var.target_group_arn
   }
 }
-
