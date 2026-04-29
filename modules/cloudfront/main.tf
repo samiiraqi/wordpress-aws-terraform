@@ -4,6 +4,10 @@ resource "aws_cloudfront_distribution" "main" {
   web_acl_id      = var.web_acl_arn
   price_class     = "PriceClass_100"
 
+  # acm_certificate_arn must come from aws_acm_certificate_validation.certificate_arn
+  # (not aws_acm_certificate.arn) so Terraform waits for DNS validation to complete
+  # before attempting to create this distribution.
+
   origin {
     domain_name = var.alb_dns_name
     origin_id   = "${var.project_name}-alb"
