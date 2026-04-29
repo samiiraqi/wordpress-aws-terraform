@@ -148,7 +148,6 @@ module "dns_and_ssl" {
   alb_arn                  = module.compute.alb_arn
   target_group_arn         = module.compute.alb_target_group_arn
   vpc_id                   = module.networking.vpc_id
-  existing_certificate_arn = "arn:aws:acm:us-east-1:156041402173:certificate/59a08c3f-b47e-4dd9-8f8e-027c74b137ff"
   providers = {
     aws = aws.us_east_1
   }
