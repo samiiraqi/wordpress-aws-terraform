@@ -140,15 +140,15 @@ module "cloudfront" {
 }
 
 module "dns_and_ssl" {
-  source                   = "../../modules/dns_and_ssl"
-  project_name             = var.project_name
-  domain_name              = "mywebsitehosting.net"
-  hosted_zone_id           = "Z1000332DD65SQUMW9GP"
-  alb_dns_name             = module.compute.alb_dns_name
-  alb_zone_id              = module.compute.alb_zone_id
-  alb_arn                  = module.compute.alb_arn
-  target_group_arn         = module.compute.alb_target_group_arn
-  vpc_id                   = module.networking.vpc_id
+  source           = "../../modules/dns_and_ssl"
+  project_name     = var.project_name
+  domain_name      = "mywebsitehosting.net"
+  hosted_zone_id   = "Z1000332DD65SQUMW9GP"
+  alb_dns_name     = module.compute.alb_dns_name
+  alb_zone_id      = module.compute.alb_zone_id
+  alb_arn          = module.compute.alb_arn
+  target_group_arn = module.compute.alb_target_group_arn
+  vpc_id           = module.networking.vpc_id
   providers = {
     aws = aws.us_east_1
   }
