@@ -84,6 +84,15 @@ module "grafana" {
   domain_name            = "mywebsitehosting.net"
 }
 
+module "wazuh" {
+  source              = "../../modules/wazuh"
+  project_name        = var.project_name
+  vpc_id              = module.networking.vpc_id
+  public_subnet_id    = module.networking.public_subnets[0]
+  allowed_cidr_blocks = ["79.177.143.195/32"]
+  cloudtrail_bucket   = module.monitoring.cloudtrail_s3_bucket
+}
+
 module "monitoring" {
   source           = "../../modules/monitoring"
   project_name     = var.project_name
