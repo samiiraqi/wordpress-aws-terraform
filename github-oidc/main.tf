@@ -212,6 +212,7 @@ data "aws_iam_policy_document" "github_actions_state" {
       "elasticloadbalancing:CreateTargetGroup",
       "elasticloadbalancing:DeleteListener",
       "elasticloadbalancing:DeleteLoadBalancer",
+      "elasticloadbalancing:DeleteRule",
       "elasticloadbalancing:DeleteTargetGroup",
       "elasticloadbalancing:DeregisterTargets",
       "elasticloadbalancing:DescribeListeners",
@@ -624,7 +625,9 @@ data "aws_iam_policy_document" "github_actions_security" {
     actions = [
       "s3:CreateBucket",
       "s3:DeleteBucket",
+      "s3:DeleteBucketPolicy",
       "s3:DeleteObject",
+      "s3:DeleteObjectVersion",
       "s3:GetAccelerateConfiguration",
       "s3:GetBucketAcl",
       "s3:GetBucketCORS",
@@ -640,6 +643,7 @@ data "aws_iam_policy_document" "github_actions_security" {
       "s3:GetLifecycleConfiguration",
       "s3:GetReplicationConfiguration",
       "s3:ListBucket",
+      "s3:ListBucketVersions",
       "s3:PutBucketPolicy",
       "s3:PutBucketPublicAccessBlock",
       "s3:PutBucketTagging",
@@ -765,7 +769,8 @@ module "iam_github_oidc_role" {
     "repo:samiiraqi/wordpress-aws-terraform:ref:refs/heads/main",
     "repo:samiiraqi/wordpress-aws-terraform:pull_request",
     "repo:samiiraqi/wordpress-aws-terraform:environment:production",
-    "repo:samiiraqi/wordpress-aws-terraform:environment:staging"
+    "repo:samiiraqi/wordpress-aws-terraform:environment:staging",
+    "repo:samiiraqi/wordpress-aws-terraform:environment:staging-destroy"
   ]
 
 
