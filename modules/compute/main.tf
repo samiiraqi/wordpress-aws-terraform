@@ -46,7 +46,7 @@ module "ecs_cluster" {
 resource "aws_iam_role" "ecs_instance_role" {
   name = "${var.project_name}-ecs-instance-role"
   assume_role_policy = jsonencode({
-    Version = "2012-10-17"
+    Version   = "2012-10-17"
     Statement = [{ Action = "sts:AssumeRole", Effect = "Allow", Principal = { Service = "ec2.amazonaws.com" } }]
   })
 }
@@ -69,7 +69,7 @@ resource "aws_iam_instance_profile" "ecs_instance_profile" {
 resource "aws_iam_role" "ecs_task_execution_role" {
   name = "${var.project_name}-ecs-task-execution-role"
   assume_role_policy = jsonencode({
-    Version = "2012-10-17"
+    Version   = "2012-10-17"
     Statement = [{ Action = "sts:AssumeRole", Effect = "Allow", Principal = { Service = "ecs-tasks.amazonaws.com" } }]
   })
 }
@@ -102,7 +102,7 @@ resource "aws_iam_role_policy" "ecs_secrets" {
 resource "aws_cloudwatch_log_group" "wordpress" {
   name              = "/ecs/${var.project_name}"
   retention_in_days = 7
-  tags = { Name = "${var.project_name}-logs" }
+  tags              = { Name = "${var.project_name}-logs" }
 }
 
 resource "aws_ecs_task_definition" "wordpress" {
@@ -111,30 +111,30 @@ resource "aws_ecs_task_definition" "wordpress" {
   task_role_arn      = aws_iam_role.ecs_task_execution_role.arn
   execution_role_arn = aws_iam_role.ecs_task_execution_role.arn
 
- volume {
-  name = "wordpress-data"
-}
+  volume {
+    name = "wordpress-data"
+  }
 
   container_definitions = jsonencode([
     {
-      name      = "php-fpm"
+      name  = "php-fpm"
       image = "${aws_ecr_repository.wordpress.repository_url}:latest"
-      
+
       essential = true
       memory    = 256
 
       environment = [
-  { name = "WORDPRESS_DB_HOST", value = split(":", var.db_endpoint)[0] },
-  { name = "WORDPRESS_DB_NAME", value = var.db_name },
-  { name = "WORDPRESS_DB_USER", value = var.db_username }
-]
+        { name = "WORDPRESS_DB_HOST", value = split(":", var.db_endpoint)[0] },
+        { name = "WORDPRESS_DB_NAME", value = var.db_name },
+        { name = "WORDPRESS_DB_USER", value = var.db_username }
+      ]
 
-secrets = [
-  {
-    name      = "WORDPRESS_DB_PASSWORD"
-    valueFrom = "${var.db_secret_arn}:password::"
-  }
-]
+      secrets = [
+        {
+          name      = "WORDPRESS_DB_PASSWORD"
+          valueFrom = "${var.db_secret_arn}:password::"
+        }
+      ]
 
       healthCheck = {
         command     = ["CMD-SHELL", "php-fpm -t || exit 1"]
@@ -164,7 +164,7 @@ secrets = [
 
 
 
-      
+
       portMappings = [{ containerPort = 80, hostPort = 80, protocol = "tcp" }]
 
       mountPoints = [{ sourceVolume = "wordpress-data", containerPath = "/var/www/html", readOnly = true }]
@@ -252,7 +252,7 @@ resource "aws_launch_template" "ecs" {
 
   tag_specifications {
     resource_type = "instance"
-    tags = { Name = "${var.project_name}-ecs-instance" }
+    tags          = { Name = "${var.project_name}-ecs-instance" }
   }
 }
 
@@ -302,7 +302,7 @@ resource "aws_ecs_service" "wordpress" {
   cluster                           = module.ecs_cluster.cluster_id
   task_definition                   = aws_ecs_task_definition.wordpress.arn
   desired_count                     = 1
-  enable_execute_command  = true
+  enable_execute_command            = true
   health_check_grace_period_seconds = 120
 
   capacity_provider_strategy {

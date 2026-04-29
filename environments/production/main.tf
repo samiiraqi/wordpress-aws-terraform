@@ -7,6 +7,16 @@ terraform {
   }
 }
 
+import {
+  to = module.monitoring.aws_guardduty_detector.main
+  id = "eecd7d139f4050d633d44f79d911cc66"
+}
+
+import {
+  to = module.monitoring.aws_securityhub_account.main
+  id = "156041402173"
+}
+
 provider "aws" {
   region = var.aws_region
 }
@@ -124,8 +134,9 @@ module "cloudfront" {
   project_name        = var.project_name
   alb_dns_name        = module.compute.alb_dns_name
   domain_name         = "mywebsitehosting.net"
-  acm_certificate_arn = "arn:aws:acm:us-east-1:156041402173:certificate/59a08c3f-b47e-4dd9-8f8e-027c74b137ff"
+  acm_certificate_arn = module.dns_and_ssl.certificate_arn
   web_acl_arn         = module.waf_cloudfront.web_acl_arn
+  depends_on          = [module.dns_and_ssl]
 }
 
 module "dns_and_ssl" {
@@ -138,6 +149,9 @@ module "dns_and_ssl" {
   alb_arn          = module.compute.alb_arn
   target_group_arn = module.compute.alb_target_group_arn
   vpc_id           = module.networking.vpc_id
+  providers = {
+    aws = aws.us_east_1
+  }
 }
 # trigger
 # trigger
