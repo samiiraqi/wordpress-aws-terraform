@@ -126,6 +126,12 @@ module "waf" {
   alb_arn      = module.compute.alb_arn
 }
 
+data "aws_acm_certificate" "cloudfront" {
+  provider = aws.us_east_1
+  domain   = "mywebsitehosting.net"
+  statuses = ["ISSUED"]
+}
+
 module "waf_cloudfront" {
   source = "../../modules/waf-cloudfront"
   providers = {
@@ -139,7 +145,7 @@ module "cloudfront" {
   project_name        = var.project_name
   alb_dns_name        = module.compute.alb_dns_name
   domain_name         = "mywebsitehosting.net"
-  acm_certificate_arn = module.dns_and_ssl.certificate_arn
+  acm_certificate_arn = data.aws_acm_certificate.cloudfront.arn
   web_acl_arn         = module.waf_cloudfront.web_acl_arn
 }
 
