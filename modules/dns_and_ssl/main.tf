@@ -20,7 +20,6 @@ resource "aws_acm_certificate" "this" {
   validation_method = "DNS"
 
   lifecycle {
-    prevent_destroy       = true
     create_before_destroy = true
   }
 
