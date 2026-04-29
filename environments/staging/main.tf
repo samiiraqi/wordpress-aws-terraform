@@ -8,11 +8,6 @@ terraform {
 }
 
 import {
-  to = module.dns_and_ssl.aws_acm_certificate.this
-  id = "arn:aws:acm:us-east-1:156041402173:certificate/59a08c3f-b47e-4dd9-8f8e-027c74b137ff"
-}
-
-import {
   to = module.monitoring.aws_guardduty_detector.main
   id = "eecd7d139f4050d633d44f79d911cc66"
 }
