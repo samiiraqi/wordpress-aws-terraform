@@ -144,4 +144,7 @@ module "dns_and_ssl" {
   alb_arn          = module.compute.alb_arn
   target_group_arn = module.compute.alb_target_group_arn
   vpc_id           = module.networking.vpc_id
+  providers = {
+    aws = aws.us_east_1
+  }
 }
