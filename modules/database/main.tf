@@ -18,14 +18,14 @@ resource "random_password" "db_password" {
 resource "aws_secretsmanager_secret" "db_password" {
   name                    = "${var.project_name}-db-password"
   recovery_window_in_days = 0
-  
+
   tags = {
     Name = "${var.project_name}-db-password"
   }
 }
 
 resource "aws_secretsmanager_secret_version" "db_password" {
-  secret_id     = aws_secretsmanager_secret.db_password.id
+  secret_id = aws_secretsmanager_secret.db_password.id
   secret_string = jsonencode({
     username = var.db_username
     password = random_password.db_password.result
@@ -45,11 +45,11 @@ module "rds" {
   allocated_storage = 20
   storage_type      = "gp2"
 
-  db_name  = var.db_name
-  username = var.db_username
-  password = random_password.db_password.result
+  db_name                     = var.db_name
+  username                    = var.db_username
+  password                    = random_password.db_password.result
   manage_master_user_password = false
-  port     = "3306"
+  port                        = "3306"
 
   create_db_subnet_group = true
   subnet_ids             = var.private_subnet_ids
@@ -57,9 +57,9 @@ module "rds" {
 
   publicly_accessible = false
   skip_final_snapshot = true
-  
-  
-  multi_az            = false
+
+
+  multi_az = false
 
   create_db_option_group    = false
   create_db_parameter_group = false

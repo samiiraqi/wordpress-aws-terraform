@@ -1,5 +1,5 @@
 output "certificate_arn" {
-  value = aws_acm_certificate.this.arn
+  value = local.certificate_arn
 }
 
 output "domain_name" {

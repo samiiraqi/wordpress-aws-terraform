@@ -42,19 +42,19 @@ jobs:
         working-directory: environments/staging
         run: terraform init
 
-      - name: Terraform Plan
+      - name: Terraform Apply - DNS and SSL
         working-directory: environments/staging
         env:
           TF_VAR_alert_email: ${{ secrets.TF_VAR_ALERT_EMAIL }}
           TF_VAR_aws_region: ${{ secrets.TF_VAR_AWS_REGION }}
-        run: terraform plan -out=plan.tfplan -input=false
+        run: terraform apply -target=module.dns_and_ssl -auto-approve -input=false
 
       - name: Terraform Apply
         working-directory: environments/staging
         env:
           TF_VAR_alert_email: ${{ secrets.TF_VAR_ALERT_EMAIL }}
           TF_VAR_aws_region: ${{ secrets.TF_VAR_AWS_REGION }}
-        run: terraform apply -input=false plan.tfplan
+        run: terraform apply -auto-approve -input=false
 
       - name: Get ALB DNS Name
         id: get-alb
@@ -152,13 +152,13 @@ jobs:
         working-directory: environments/production
         run: terraform init
 
-      - name: Terraform Plan
+      - name: Terraform Apply - DNS and SSL
         working-directory: environments/production
         env:
           TF_VAR_project_name: ${{ vars.TF_VAR_PROJECT_NAME }}
           TF_VAR_alert_email: ${{ secrets.TF_VAR_ALERT_EMAIL }}
           TF_VAR_aws_region: ${{ secrets.TF_VAR_AWS_REGION }}
-        run: terraform plan -out=plan.tfplan -input=false
+        run: terraform apply -target=module.dns_and_ssl -auto-approve -input=false
 
       - name: Terraform Apply
         working-directory: environments/production
@@ -166,7 +166,7 @@ jobs:
           TF_VAR_project_name: ${{ vars.TF_VAR_PROJECT_NAME }}
           TF_VAR_alert_email: ${{ secrets.TF_VAR_ALERT_EMAIL }}
           TF_VAR_aws_region: ${{ secrets.TF_VAR_AWS_REGION }}
-        run: terraform apply -input=false plan.tfplan
+        run: terraform apply -auto-approve -input=false
 
       - name: Get ALB DNS Name
         id: get-alb
