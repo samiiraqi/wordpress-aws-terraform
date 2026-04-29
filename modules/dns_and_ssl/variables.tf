@@ -29,3 +29,9 @@ variable "target_group_arn" {
 variable "vpc_id" {
   type = string
 }
+
+variable "existing_certificate_arn" {
+  type        = string
+  default     = ""
+  description = "ARN of an existing ACM certificate to use instead of creating a new one"
+}

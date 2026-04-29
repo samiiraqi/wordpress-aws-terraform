@@ -7,13 +7,20 @@ terraform {
   }
 }
 
+locals {
+  create_certificate = var.existing_certificate_arn == ""
+  certificate_arn    = local.create_certificate ? aws_acm_certificate_validation.this[0].certificate_arn : var.existing_certificate_arn
+}
+
 # ACM Certificate
 resource "aws_acm_certificate" "this" {
+  count             = local.create_certificate ? 1 : 0
   provider          = aws
   domain_name       = var.domain_name
   validation_method = "DNS"
 
   lifecycle {
+    prevent_destroy       = true
     create_before_destroy = true
   }
 
@@ -25,13 +32,13 @@ resource "aws_acm_certificate" "this" {
 # DNS Validation Record
 resource "aws_route53_record" "cert_validation" {
   provider = aws
-  for_each = {
-    for dvo in aws_acm_certificate.this.domain_validation_options : dvo.domain_name => {
+  for_each = local.create_certificate ? {
+    for dvo in aws_acm_certificate.this[0].domain_validation_options : dvo.domain_name => {
       name   = dvo.resource_record_name
       record = dvo.resource_record_value
       type   = dvo.resource_record_type
     }
-  }
+  } : {}
 
   allow_overwrite = true
   name            = each.value.name
@@ -43,8 +50,9 @@ resource "aws_route53_record" "cert_validation" {
 
 # Certificate Validation
 resource "aws_acm_certificate_validation" "this" {
+  count                   = local.create_certificate ? 1 : 0
   provider                = aws
-  certificate_arn         = aws_acm_certificate.this.arn
+  certificate_arn         = aws_acm_certificate.this[0].arn
   validation_record_fqdns = [for record in aws_route53_record.cert_validation : record.fqdn]
 }
 
@@ -69,7 +77,7 @@ resource "aws_lb_listener" "https" {
   port              = "443"
   protocol          = "HTTPS"
   ssl_policy        = "ELBSecurityPolicy-TLS13-1-2-2021-06"
-  certificate_arn   = aws_acm_certificate_validation.this.certificate_arn
+  certificate_arn   = local.certificate_arn
 
   default_action {
     type             = "forward"
