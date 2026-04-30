@@ -197,6 +197,7 @@ data "aws_iam_policy_document" "github_actions_state" {
       "ec2:ModifySubnetAttribute",
       "ec2:ModifyVpcAttribute",
       "ec2:DescribeInstanceStatus",
+      "ec2:DescribeInstanceTypes",
       "ec2:DisassociateAddress",
       "ec2:ModifyInstanceAttribute",
       "ec2:ReleaseAddress",
