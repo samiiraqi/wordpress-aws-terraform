@@ -154,6 +154,7 @@ resource "aws_instance" "wazuh" {
   subnet_id              = var.public_subnet_id
   vpc_security_group_ids = [aws_security_group.wazuh.id]
   iam_instance_profile   = aws_iam_instance_profile.wazuh.name
+  key_name               = "my keypair"
 
   root_block_device {
     volume_size = 50
