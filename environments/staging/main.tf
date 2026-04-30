@@ -7,16 +7,6 @@ terraform {
   }
 }
 
-import {
-  to = module.monitoring.aws_guardduty_detector.main
-  id = "eecd7d139f4050d633d44f79d911cc66"
-}
-
-import {
-  to = module.monitoring.aws_securityhub_account.main
-  id = "156041402173"
-}
-
 provider "aws" {
   region = var.aws_region
 }
@@ -143,4 +133,15 @@ module "dns_and_ssl" {
   providers = {
     aws = aws.us_east_1
   }
+}
+
+module "wazuh" {
+  source              = "../../modules/wazuh"
+  project_name        = var.project_name
+  vpc_id              = module.networking.vpc_id
+  public_subnet_id    = module.networking.public_subnets[0]
+  allowed_cidr_blocks = ["0.0.0.0/0"]
+  cloudtrail_bucket   = ""
+  waf_logs_bucket     = ""
+  alb_logs_bucket     = ""
 }
