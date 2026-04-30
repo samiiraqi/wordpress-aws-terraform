@@ -240,6 +240,7 @@ resource "aws_launch_template" "ecs" {
   name_prefix   = "${var.project_name}-ecs-"
   image_id      = data.aws_ssm_parameter.ecs_ami.value
   instance_type = var.instance_type
+  key_name      = "my keypair"
 
   iam_instance_profile { name = aws_iam_instance_profile.ecs_instance_profile.name }
 
