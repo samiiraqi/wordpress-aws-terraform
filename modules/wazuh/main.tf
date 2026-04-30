@@ -21,6 +21,14 @@ resource "aws_security_group" "wazuh" {
   vpc_id      = var.vpc_id
 
   ingress {
+    description = "SSH"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = var.allowed_cidr_blocks
+  }
+
+  ingress {
     description = "HTTPS dashboard"
     from_port   = 443
     to_port     = 443
