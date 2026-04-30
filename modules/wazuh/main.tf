@@ -163,10 +163,13 @@ resource "aws_instance" "wazuh" {
 
   user_data = <<-EOF
     #!/bin/bash
-    set -euo pipefail
+    set -x
+    exec > /var/log/wazuh-install.log 2>&1
+
+    sleep 30
 
     # Install Wazuh Manager
-    rpm --import https://packages.wazuh.com/key/GPG-KEY-WAZUH
+    rpm --import https://packages.wazuh.com/key/GPG-KEY-WAZUH || true
 
     cat > /etc/yum.repos.d/wazuh.repo << 'REPO'
     [wazuh]
@@ -178,11 +181,11 @@ resource "aws_instance" "wazuh" {
     protect=1
     REPO
 
-    yum install -y wazuh-manager
+    yum install -y wazuh-manager || true
 
-    systemctl daemon-reload
-    systemctl enable wazuh-manager
-    systemctl start wazuh-manager
+    systemctl daemon-reload || true
+    systemctl enable wazuh-manager || true
+    systemctl start wazuh-manager || true
   EOF
 
   tags = {
