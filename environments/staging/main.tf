@@ -146,3 +146,4 @@ module "wazuh" {
   alb_logs_bucket     = ""
 }
 # trigger
+# trigger2
