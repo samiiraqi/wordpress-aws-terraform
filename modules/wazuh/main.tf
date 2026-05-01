@@ -115,6 +115,24 @@ resource "aws_iam_role_policy" "wazuh" {
         ]
       },
       {
+        Sid    = "CloudTrailBucketAccess"
+        Effect = "Allow"
+        Action = [
+          "s3:GetObject",
+          "s3:ListBucket",
+        ]
+        Resource = [
+          "arn:aws:s3:::wordpress-staging-cloudtrail-156041402173",
+          "arn:aws:s3:::wordpress-staging-cloudtrail-156041402173/*",
+        ]
+      },
+      {
+        Sid      = "S3ListAllBuckets"
+        Effect   = "Allow"
+        Action   = ["s3:ListAllMyBuckets"]
+        Resource = ["*"]
+      },
+      {
         Sid    = "CloudWatchLogsRead"
         Effect = "Allow"
         Action = [
