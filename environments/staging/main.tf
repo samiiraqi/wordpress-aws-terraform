@@ -72,18 +72,6 @@ module "compute" {
   instance_type     = var.instance_type
 }
 
-module "grafana" {
-  source                 = "../../modules/grafana"
-  project_name           = var.project_name
-  vpc_id                 = module.networking.vpc_id
-  alb_sg_id              = module.security.alb_sg_id
-  alb_https_listener_arn = module.dns_and_ssl.https_listener_arn
-  ecs_cluster_id         = module.compute.ecs_cluster_id
-  ecs_capacity_provider  = module.compute.ecs_capacity_provider
-  aws_region             = var.aws_region
-  domain_name            = "staging.mywebsitehosting.net"
-}
-
 module "monitoring" {
   source           = "../../modules/monitoring"
   project_name     = var.project_name
@@ -135,15 +123,5 @@ module "dns_and_ssl" {
   }
 }
 
-module "wazuh" {
-  source              = "../../modules/wazuh"
-  project_name        = var.project_name
-  vpc_id              = module.networking.vpc_id
-  public_subnet_id    = module.networking.public_subnets[0]
-  allowed_cidr_blocks = ["79.177.143.195/32"]
-  cloudtrail_bucket   = ""
-  waf_logs_bucket     = ""
-  alb_logs_bucket     = ""
-}
 # trigger
 # trigger2
