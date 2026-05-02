@@ -33,13 +33,6 @@ module "ecs_sg" {
       protocol                 = "tcp"
       source_security_group_id = module.alb_sg.security_group_id
     },
-    {
-      description              = "Grafana from ALB only"
-      from_port                = 3000
-      to_port                  = 3000
-      protocol                 = "tcp"
-      source_security_group_id = module.alb_sg.security_group_id
-    }
   ]
 
 
