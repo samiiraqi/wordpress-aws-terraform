@@ -7,11 +7,6 @@ terraform {
   }
 }
 
-import {
-  to = module.monitoring.aws_cloudwatch_log_group.vpc_flow_logs
-  id = "/aws/vpc/wordpress-flow-logs"
-}
-
 provider "aws" {
   region = var.aws_region
 }
