@@ -767,6 +767,8 @@ data "aws_iam_policy_document" "github_actions_sns" {
       "sns:SetTopicAttributes",
       "sns:GetTopicAttributes",
       "sns:ListTopics",
+      "sns:TagResource",
+      "sns:UntagResource",
     ]
     resources = ["*"]
   }
