@@ -14,8 +14,46 @@ permissions:
   contents: read
 
 jobs:
+  ecr-setup:
+    name: Terraform Apply - ECR
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@5e8dbf3c6d9deaf4193ca7a8fb23f2ac83bb6c85 # v4.0.0
+        with:
+          terraform_version: '1.10.2'
+          terraform_wrapper: false
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@ec61189d14ec14c8efccab744f656cffd0e33f37 # v6.1.0
+        with:
+          role-to-assume: arn:aws:iam::156041402173:role/github-actions-oidc-role
+          aws-region: us-east-1
+
+      - name: Terraform Init
+        working-directory: environments/production
+        run: terraform init
+
+      - name: Terraform Apply - ECR only
+        working-directory: environments/production
+        env:
+          TF_VAR_project_name: ${{ vars.TF_VAR_PROJECT_NAME }}
+          TF_VAR_alert_email: ${{ secrets.TF_VAR_ALERT_EMAIL }}
+          TF_VAR_aws_region: ${{ secrets.TF_VAR_AWS_REGION }}
+        run: |
+          terraform apply -auto-approve -input=false \
+            -target=module.compute.aws_ecr_repository.wordpress \
+            -target=module.compute.aws_ecr_repository.nginx
+
   docker-images:
     name: Docker images (production)
+    needs: ecr-setup
     uses: ./.github/workflows/docker-build-reusable.yml
     with:
       push: true
