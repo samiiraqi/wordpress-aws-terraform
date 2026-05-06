@@ -759,17 +759,7 @@ data "aws_iam_policy_document" "github_actions_sns" {
   statement {
     sid    = "SNSAccess"
     effect = "Allow"
-    actions = [
-      "sns:CreateTopic",
-      "sns:DeleteTopic",
-      "sns:Subscribe",
-      "sns:Unsubscribe",
-      "sns:SetTopicAttributes",
-      "sns:GetTopicAttributes",
-      "sns:ListTopics",
-      "sns:TagResource",
-      "sns:UntagResource",
-    ]
+    actions = ["sns:*"]
     resources = ["*"]
   }
 }

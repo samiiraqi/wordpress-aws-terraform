@@ -51,9 +51,28 @@ jobs:
             -target=module.compute.aws_ecr_repository.wordpress \
             -target=module.compute.aws_ecr_repository.nginx
 
+  detect-changes:
+    name: Detect changed paths
+    runs-on: ubuntu-latest
+    outputs:
+      docker: ${{ steps.filter.outputs.docker }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Filter paths
+        uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3.0.2
+        id: filter
+        with:
+          filters: |
+            docker:
+              - 'docker/**'
+
   docker-images:
     name: Docker images (production)
-    needs: ecr-setup
+    needs: [ecr-setup, detect-changes]
+    if: needs.detect-changes.outputs.docker == 'true'
     uses: ./.github/workflows/docker-build-reusable.yml
     with:
       push: true
@@ -63,7 +82,11 @@ jobs:
 
   production:
     name: Terraform Apply - Production
-    needs: docker-images
+    needs: [ecr-setup, docker-images]
+    if: |
+      !cancelled() &&
+      needs.ecr-setup.result == 'success' &&
+      (needs.docker-images.result == 'success' || needs.docker-images.result == 'skipped')
     runs-on: ubuntu-latest
     environment: production
     timeout-minutes: 60
