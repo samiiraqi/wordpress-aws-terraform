@@ -757,9 +757,9 @@ data "aws_iam_policy_document" "github_actions_security" {
 
 data "aws_iam_policy_document" "github_actions_sns" {
   statement {
-    sid    = "SNSAccess"
-    effect = "Allow"
-    actions = ["sns:*"]
+    sid       = "SNSAccess"
+    effect    = "Allow"
+    actions   = ["sns:*"]
     resources = ["*"]
   }
 }
