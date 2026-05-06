@@ -755,6 +755,29 @@ data "aws_iam_policy_document" "github_actions_security" {
   }
 }
 
+data "aws_iam_policy_document" "github_actions_sns" {
+  statement {
+    sid    = "SNSAccess"
+    effect = "Allow"
+    actions = [
+      "sns:CreateTopic",
+      "sns:DeleteTopic",
+      "sns:Subscribe",
+      "sns:Unsubscribe",
+      "sns:SetTopicAttributes",
+      "sns:GetTopicAttributes",
+      "sns:ListTopics",
+    ]
+    resources = ["*"]
+  }
+}
+
+resource "aws_iam_policy" "github_actions_sns" {
+  name        = "github-actions-terraform-sns-policy"
+  description = "GitHub Actions: SNS topic and subscription management"
+  policy      = data.aws_iam_policy_document.github_actions_sns.json
+}
+
 resource "aws_iam_policy" "github_actions_state" {
   name        = "github-actions-terraform-state-policy"
   description = "GitHub Actions: state backend, KMS, OIDC IAM, SSM, ECR push, plus EC2/VPC and ELB for main infra"
@@ -798,5 +821,6 @@ module "iam_github_oidc_role" {
     GitHubActionsInfraPolicy    = aws_iam_policy.github_actions_infra.arn
     GitHubActionsDNSPolicy      = aws_iam_policy.github_actions_dns.arn
     GitHubActionsSecurityPolicy = aws_iam_policy.github_actions_security.arn
+    GitHubActionsSNSPolicy      = aws_iam_policy.github_actions_sns.arn
   }
 }
