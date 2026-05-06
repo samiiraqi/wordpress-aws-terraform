@@ -8,13 +8,8 @@ terraform {
 }
 
 import {
-  to = module.monitoring.aws_guardduty_detector.main
-  id = "eecd7d139f4050d633d44f79d911cc66"
-}
-
-import {
-  to = module.monitoring.aws_securityhub_account.main
-  id = "156041402173"
+  to = module.monitoring.aws_cloudwatch_log_group.vpc_flow_logs
+  id = "/aws/vpc/wordpress-flow-logs"
 }
 
 provider "aws" {
@@ -80,6 +75,25 @@ module "compute" {
   db_secret_arn     = module.database.db_secret_arn
   sns_topic_arn     = module.billing.sns_topic_arn
   instance_type     = var.instance_type
+}
+
+module "n8n" {
+  source            = "../../modules/n8n"
+  project_name      = var.project_name
+  vpc_id            = module.networking.vpc_id
+  public_subnet_ids = module.networking.public_subnets
+}
+
+module "alerts" {
+  source           = "../../modules/alerts"
+  project_name     = var.project_name
+  alert_email      = var.alert_email
+  n8n_webhook_url  = module.n8n.webhook_url
+  aws_region       = var.aws_region
+  alb_arn          = module.compute.alb_arn
+  ecs_cluster_name = "${var.project_name}-cluster"
+  ecs_service_name = "${var.project_name}-service"
+  db_identifier    = "${var.project_name}-db"
 }
 
 module "monitoring" {

@@ -15,7 +15,7 @@ project_name = "wordpress"
 
 # Email address that receives billing threshold and CloudWatch alerts.
 # This address will receive an SNS subscription confirmation email.
-alert_email = "your-email@example.com"
+alert_email = "seed999weed1@gmail.com"
 
 # EC2 / ECS instance type for the compute module.
 # For production, prefer a general-purpose or compute-optimised instance.
