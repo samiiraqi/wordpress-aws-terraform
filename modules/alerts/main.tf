@@ -12,11 +12,15 @@ resource "aws_sns_topic_subscription" "email" {
   endpoint  = var.alert_email
 }
 
-resource "aws_sns_topic_subscription" "n8n" {
+resource "aws_sns_topic_subscription" "n8n_webhook" {
   topic_arn              = aws_sns_topic.alerts.arn
   protocol               = "http"
   endpoint               = var.n8n_webhook_url
   endpoint_auto_confirms = true
+
+  lifecycle {
+    ignore_changes = [endpoint_auto_confirms]
+  }
 }
 
 locals {
