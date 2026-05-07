@@ -12,12 +12,11 @@ resource "aws_sns_topic_subscription" "email" {
   endpoint  = var.alert_email
 }
 
-# SNS → n8n webhook (HTTP). After apply, confirm the subscription inside n8n
-# by handling the SubscriptionConfirmation request at the configured webhook node.
 resource "aws_sns_topic_subscription" "n8n" {
-  topic_arn = aws_sns_topic.alerts.arn
-  protocol  = "http"
-  endpoint  = var.n8n_webhook_url
+  topic_arn              = aws_sns_topic.alerts.arn
+  protocol               = "http"
+  endpoint               = var.n8n_webhook_url
+  endpoint_auto_confirms = true
 }
 
 locals {
