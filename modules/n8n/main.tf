@@ -51,6 +51,27 @@ resource "aws_iam_role_policy_attachment" "n8n_ssm" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
 
+resource "aws_iam_role_policy" "n8n_readonly" {
+  name = "${var.project_name}-n8n-readonly-policy"
+  role = aws_iam_role.n8n.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Action = [
+        "ecs:Describe*",
+        "cloudwatch:Get*",
+        "cloudwatch:List*",
+        "cloudwatch:Describe*",
+        "rds:Describe*",
+        "elasticloadbalancing:Describe*",
+      ]
+      Resource = "*"
+    }]
+  })
+}
+
 resource "aws_iam_instance_profile" "n8n" {
   name = "${var.project_name}-n8n-profile"
   role = aws_iam_role.n8n.name
@@ -77,10 +98,12 @@ resource "aws_instance" "n8n" {
     docker run -d \
       --name n8n \
       --restart unless-stopped \
+      --user root \
       -p 5678:5678 \
       -e N8N_HOST=0.0.0.0 \
       -e N8N_PORT=5678 \
       -e N8N_PROTOCOL=http \
+      -e N8N_SECURE_COOKIE=false \
       -v /opt/n8n/data:/home/node/.n8n \
       n8nio/n8n
   EOF
