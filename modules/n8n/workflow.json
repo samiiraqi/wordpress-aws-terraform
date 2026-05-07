@@ -1,0 +1,114 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "sns-alerts",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "29852e55-7356-4c10-b3f2-c07fef690285",
+      "name": "Webhook",
+      "webhookId": "2b7f29e4-4503-418f-b0f7-946dd2f6d907"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "claude-sonnet-4-6",
+          "mode": "list",
+          "cachedResultName": "claude-sonnet-4-6"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are an AWS DevOps expert. Analyze this CloudWatch alarm and provide a clear explanation in Hebrew.\n\nAlarm data: {{ JSON.stringify($('Webhook').item.json.body) }}\n\nProvide:\n1. What happened (in simple terms)\n2. Severity level\n3. Recommended action\n\nKeep it concise and practical."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.anthropic",
+      "typeVersion": 1,
+      "position": [
+        208,
+        0
+      ],
+      "id": "66b3743f-f11e-475a-9e08-8af308b3257d",
+      "name": "Message a model",
+      "credentials": {
+        "anthropicApi": {
+          "id": "yMygTGXniHC3loFZ",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "avodamhabayet33@gmail.com",
+        "toEmail": "avodamhabayet33@gmail.com",
+        "subject": "aws alert",
+        "html": "={{ $('Message a model').item.json.content[0].text }}\n\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        560,
+        0
+      ],
+      "id": "2b717bdd-89f8-4976-819b-bcd4e173b854",
+      "name": "Send an Email",
+      "webhookId": "1e707065-ea99-4437-8bfc-6d63b46d357a",
+      "credentials": {
+        "smtp": {
+          "id": "t1TWUTohZ2E392QJ",
+          "name": "SMTP account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Send an Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "e319067b-353c-421b-aec5-fc9a1e0216d7",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "8b78537a5baae4a03d9c9b9f4faaae09b60e3a953a751a3eca482747cfedd234"
+  },
+  "id": "dvbOUv57eA6oqFZe",
+  "tags": []
+}
