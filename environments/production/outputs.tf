@@ -50,3 +50,11 @@ output "ecs_cluster_name" {
 output "wordpress_url" {
   value = "https://${module.dns_and_ssl.domain_name}"
 }
+
+output "n8n_url" {
+  value = module.n8n.n8n_url
+}
+
+output "n8n_webhook_url" {
+  value = module.n8n.webhook_url
+}
