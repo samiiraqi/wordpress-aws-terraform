@@ -83,7 +83,7 @@ module "alerts" {
   source           = "../../modules/alerts"
   project_name     = var.project_name
   alert_email      = var.alert_email
-  n8n_webhook_url  = "http://13.223.53.80:5678/webhook/sns-alerts"
+  n8n_webhook_url  = module.n8n.webhook_url
   aws_region       = var.aws_region
   alb_arn          = module.compute.alb_arn
   ecs_cluster_name = "${var.project_name}-cluster"

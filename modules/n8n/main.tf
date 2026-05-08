@@ -112,3 +112,12 @@ resource "aws_instance" "n8n" {
     Name = "${var.project_name}-n8n"
   }
 }
+
+resource "aws_eip" "n8n" {
+  instance = aws_instance.n8n.id
+  domain   = "vpc"
+
+  tags = {
+    Name = "${var.project_name}-n8n-eip"
+  }
+}
