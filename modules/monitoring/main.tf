@@ -65,6 +65,7 @@ resource "aws_cloudtrail" "main" {
 resource "aws_cloudwatch_log_group" "vpc_flow_logs" {
   name              = "/aws/vpc/${var.project_name}-flow-logs"
   retention_in_days = 30
+  force_destroy     = true
 
   tags = {
     Name = "${var.project_name}-vpc-flow-logs"
