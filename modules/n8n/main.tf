@@ -95,6 +95,8 @@ resource "aws_instance" "n8n" {
 
     mkdir -p /opt/n8n/data
 
+    echo '${base64encode(file("${path.module}/workflow.json"))}' | base64 -d > /opt/n8n/workflow.json
+
     docker run -d \
       --name n8n \
       --restart unless-stopped \
@@ -106,6 +108,18 @@ resource "aws_instance" "n8n" {
       -e N8N_SECURE_COOKIE=false \
       -v /opt/n8n/data:/home/node/.n8n \
       n8nio/n8n
+
+    for i in $(seq 1 30); do
+      if curl -sf http://localhost:5678/healthz >/dev/null 2>&1; then
+        echo "n8n is healthy"
+        break
+      fi
+      echo "Waiting for n8n ($i/30)..."
+      sleep 10
+    done
+
+    docker cp /opt/n8n/workflow.json n8n:/tmp/workflow.json
+    docker exec n8n n8n import:workflow --input=/tmp/workflow.json
   EOF
 
   tags = {
