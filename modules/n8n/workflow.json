@@ -76,7 +76,7 @@
         "messages": {
           "values": [
             {
-              "content": "=You are an AWS DevOps expert. Analyze this CloudWatch alarm and provide a clear explanation in Hebrew.\n\nAlarm data: {{ JSON.stringify($('Webhook').item.json.body) }}\n\nProvide:\n1. What happened (in simple terms)\n2. Severity level\n3. Recommended action\n\nKeep it concise and practical."
+              "content": "=You are an AWS DevOps expert. Analyze this CloudWatch alarm.\n\nAlarm data: {{ JSON.stringify($('Webhook').item.json.body) }}\n\nCRITICAL: Your response must be ONLY valid HTML. No markdown whatsoever.\nStart your response with <div and end with </div>.\nDo not use #, *, `, or --- characters anywhere.\n\nUse this HTML template:\n<div style=\"font-family: Arial, sans-serif; max-width: 600px; padding: 20px; border: 2px solid #d32f2f; border-radius: 8px; direction: rtl;\">\n<h2 style=\"color: #d32f2f;\">🚨 התראת AWS</h2>\n<p><strong>שם ההתראה:</strong> ALARM_NAME</p>\n<p><strong>מה קרה:</strong> EXPLANATION</p>\n<p><strong>רמת חומרה:</strong> SEVERITY</p>\n<h3>פעולות מומלצות:</h3>\n<ul>\n<li>ACTION1</li>\n<li>ACTION2</li>\n</ul>\n</div>\n\nFill in the placeholders with actual content in Hebrew."
             }
           ]
         },
@@ -102,14 +102,14 @@
         "fromEmail": "avodamhabayet33@gmail.com",
         "toEmail": "avodamhabayet33@gmail.com",
         "subject": "AWS ALERT",
-        "html": "={{ $('Message a model').item.json.content[0].text }}\n\n",
+        "html": "={{ $('Code in JavaScript').item.json.html }}\n",
         "options": {}
       },
       "type": "n8n-nodes-base.emailSend",
       "typeVersion": 2.1,
       "position": [
-        661,
-        96
+        896,
+        80
       ],
       "id": "1953de21-a538-48ca-bf04-0c56de2e39ab",
       "name": "Send an Email",
@@ -120,6 +120,19 @@
           "name": "SMTP account"
         }
       }
+    },
+    {
+      "parameters": {
+        "jsCode": "const text = $('Message a model').item.json.content[0].text;\n\nlet html = text\n  .replace(/### (.*)/g, '<h3>$1</h3>')\n  .replace(/## (.*)/g, '<h2>$1</h2>')\n  .replace(/# (.*)/g, '<h1>$1</h1>')\n  .replace(/\\*\\*(.*?)\\*\\*/g, '<strong>$1</strong>')\n  .replace(/\\*(.*?)\\*/g, '<em>$1</em>')\n  .replace(/`(.*?)`/g, '<code>$1</code>')\n  .replace(/\\n\\n/g, '<br><br>')\n  .replace(/\\n/g, '<br>');\n\nhtml = `<div style=\"font-family: Arial, sans-serif; max-width: 600px; padding: 20px; border: 2px solid #d32f2f; border-radius: 8px;\">${html}</div>`;\n\nreturn [{json: {html: html}}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        720,
+        96
+      ],
+      "id": "7036c720-0f51-4ca6-8462-01fa3a074bbd",
+      "name": "Code in JavaScript"
     }
   ],
   "pinData": {},
@@ -157,6 +170,17 @@
       "main": [
         [
           {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
             "node": "Send an Email",
             "type": "main",
             "index": 0
@@ -170,7 +194,7 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "36183948-1765-4262-a221-92bffc1aba72",
+  "versionId": "9922ee62-02c8-4a94-879e-9341344846c6",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "90cba35165f1ce73906d4c7c59815f33133f3feff4a34dcabbcc3101239b07d8"
