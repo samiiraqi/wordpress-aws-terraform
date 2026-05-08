@@ -12,15 +12,11 @@ resource "aws_sns_topic_subscription" "email" {
   endpoint  = var.alert_email
 }
 
+# SNS subscription confirmation is handled by the n8n webhook node on first delivery.
 resource "aws_sns_topic_subscription" "n8n_webhook" {
-  topic_arn              = aws_sns_topic.alerts.arn
-  protocol               = "http"
-  endpoint               = var.n8n_webhook_url
-  endpoint_auto_confirms = true
-
-  lifecycle {
-    ignore_changes = [endpoint_auto_confirms]
-  }
+  topic_arn = aws_sns_topic.alerts.arn
+  protocol  = "http"
+  endpoint  = var.n8n_webhook_url
 }
 
 locals {
