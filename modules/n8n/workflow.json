@@ -13,9 +13,57 @@
         0,
         0
       ],
-      "id": "29852e55-7356-4c10-b3f2-c07fef690285",
+      "id": "d1a5d761-b34f-41ff-8b69-642a8825b7c2",
       "name": "Webhook",
-      "webhookId": "2b7f29e4-4503-418f-b0f7-946dd2f6d907"
+      "webhookId": "e143edc1-d9fd-49a0-a1cd-368f85efbf3f"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "5a1dc521-5d85-48d6-8ac6-d73d1fa79398",
+              "leftValue": "={{ $json.headers['x-amz-sns-message-type'] }}",
+              "rightValue": "SubscriptionConfirmation",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        208,
+        0
+      ],
+      "id": "76fe9481-900f-4151-b720-cd4e953f0266",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "url": "={{ JSON.parse($('Webhook').item.json.body).SubscribeURL }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        416,
+        -96
+      ],
+      "id": "55df3090-eced-4f0f-8f4c-e5c616bcba77",
+      "name": "HTTP Request"
     },
     {
       "parameters": {
@@ -37,14 +85,14 @@
       "type": "@n8n/n8n-nodes-langchain.anthropic",
       "typeVersion": 1,
       "position": [
-        208,
-        0
+        416,
+        96
       ],
-      "id": "66b3743f-f11e-475a-9e08-8af308b3257d",
+      "id": "3bd0cd31-18a7-4f94-b223-931d43db7126",
       "name": "Message a model",
       "credentials": {
         "anthropicApi": {
-          "id": "yMygTGXniHC3loFZ",
+          "id": "a9z3LbLaK6jLIpDf",
           "name": "Anthropic account"
         }
       }
@@ -53,22 +101,22 @@
       "parameters": {
         "fromEmail": "avodamhabayet33@gmail.com",
         "toEmail": "avodamhabayet33@gmail.com",
-        "subject": "aws alert",
+        "subject": "AWS ALERT",
         "html": "={{ $('Message a model').item.json.content[0].text }}\n\n",
         "options": {}
       },
       "type": "n8n-nodes-base.emailSend",
       "typeVersion": 2.1,
       "position": [
-        560,
-        0
+        661,
+        96
       ],
-      "id": "2b717bdd-89f8-4976-819b-bcd4e173b854",
+      "id": "1953de21-a538-48ca-bf04-0c56de2e39ab",
       "name": "Send an Email",
-      "webhookId": "1e707065-ea99-4437-8bfc-6d63b46d357a",
+      "webhookId": "099774fa-3dd7-457e-9b06-51dfe82e769f",
       "credentials": {
         "smtp": {
-          "id": "t1TWUTohZ2E392QJ",
+          "id": "i61K9RF7zNFQno5i",
           "name": "SMTP account"
         }
       }
@@ -78,6 +126,24 @@
   "connections": {
     "Webhook": {
       "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ],
         [
           {
             "node": "Message a model",
@@ -99,16 +165,16 @@
       ]
     }
   },
-  "active": false,
+  "active": true,
   "settings": {
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "e319067b-353c-421b-aec5-fc9a1e0216d7",
+  "versionId": "36183948-1765-4262-a221-92bffc1aba72",
   "meta": {
     "templateCredsSetupCompleted": true,
-    "instanceId": "8b78537a5baae4a03d9c9b9f4faaae09b60e3a953a751a3eca482747cfedd234"
+    "instanceId": "90cba35165f1ce73906d4c7c59815f33133f3feff4a34dcabbcc3101239b07d8"
   },
-  "id": "dvbOUv57eA6oqFZe",
+  "id": "oKC5a60nhgVmDbjv",
   "tags": []
 }
